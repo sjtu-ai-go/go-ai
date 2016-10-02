@@ -1,2 +1,45 @@
 # go-ai
 Toy Go game AI
+
+## Setup
+
+### Clone
+
+```
+git clone --recursive {{Git address of this repository (you can find it by clicking the green "Clone or Download" button)}}
+```
+
+### Install Vagrant
+
+Vagrant is a middleware between virtual machine(provided by VirtualBox in this repo) and user. It can be installed on Windows, Mac and Linux, which bridges the difference between host and developing environment.
+
+[Windows installation guide](https://blog.smdcn.net/article/1308.html); [Official guide](https://www.vagrantup.com/docs/installation/). Note that Vagrant itself is not a virtual machine provider, thus you need to install one(VirtualBox recommended) before installing Vagrant.
+
+
+After installation, run `vagrant up` under this directory(may take long time because it downloads the whole Ubuntu image).
+
+Check whether you can log into this box by `vagrant ssh`(on Linux/Mac) or the way metioned in Windows Installation guide.
+
+The virtual machine run in the box shares current directory in `/vagrant`, which means the common workflow is like this:
+- Edit files on your host machine
+- `vagrant ssh` or anything else to get into the box and cd `/vagrant`
+- Compile it and run tests
+
+This virtual machine also maps port 8080 to host port 8080.
+
+### Build
+
+Log into the box. Then:
+
+```
+cd /vagrant  # you should see code in this directory
+mkdir build  # Temporary directory
+cd build
+cmake ..     # This step will generate Makefile
+make -j4     # Compile with 4 threads
+
+# After above steps binaries should be built under build/
+
+# To run tests:
+ctest
+```

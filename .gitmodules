@@ -1,0 +1,6 @@
+[submodule "vendor/gtplib"]
+	path = vendor/gtplib
+	url = https://github.com/sjtu-ai-go/gtplib.git
+[submodule "vendor/googletest"]
+	path = vendor/googletest
+	url = https://github.com/sjtu-ai-go/googletest.git
