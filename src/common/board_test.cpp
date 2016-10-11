@@ -3,10 +3,12 @@
 //
 #include <cstdlib>
 #include <cstddef>
+#include <vector>
+#include <functional>
 #include <gtest/gtest.h>
 #include "board.hpp"
 
-TEST(BoardTest, TestBoardGrid)
+TEST(BoardTest, TestBoardGridGetSet)
 {
     using namespace std;
     board::BoardGrid<19, 19> bg;
@@ -33,7 +35,7 @@ TEST(BoardTest, TestBoardGrid)
     }
 }
 
-TEST(BoardTest, TestPoint)
+TEST(BoardTest, TestGridPoint)
 {
     using namespace std;
     using bg_t = board::BoardGrid<19, 19>;
@@ -58,5 +60,32 @@ TEST(BoardTest, TestPoint)
     EXPECT_EQ(2, point.x);
     EXPECT_EQ(18, point.y);
     EXPECT_TRUE(point.is_right());
+}
+
+TEST(BoardTest, TestBoardGridHash)
+{
+    using bg_t = board::BoardGrid<18, 18>;
+    bg_t bg;
+
+    std::hash<bg_t> h;
+
+    std::vector<size_t> v;
+
+    v.push_back(h(bg));
+    for (int i=0; i<100; ++i)
+    {
+        std::size_t x, y;
+        do
+        {
+            x = std::rand() % 18;
+            y = std::rand() % 18;
+        } while(bg.get(x, y) != board::PointState::NA);
+        bg.set(x, y, static_cast<board::PointState>(std::rand() % 2 + 1));
+        v.push_back(h(bg));
+    }
+
+    for (std::size_t i=0; i<99; ++i)
+        EXPECT_NE(v[i], v[i+1]) << "V[" << i << "] == V[" << i+1 << "]: " << v[i] << " vs " << v[i+1];
+
 }
 

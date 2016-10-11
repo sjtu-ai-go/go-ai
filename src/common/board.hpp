@@ -6,13 +6,14 @@
 #include <climits>
 #include <cstring>
 #include <iterator>
+#include <functional>
 namespace board
 {
     template<std::size_t W, std::size_t H>
-    struct Point
+    struct GridPoint
     {
         char x, y;
-        Point(char x, char y): x(x), y(y) {}
+        GridPoint(char x, char y): x(x), y(y) {}
         void right()
         {
             ++y;
@@ -29,7 +30,7 @@ namespace board
         {
             --x;
         }
-        Point& operator++()
+        GridPoint& operator++()
         {
             if (++y == W)
             {
@@ -38,7 +39,7 @@ namespace board
             }
             return *this;
         }
-        Point& operator--()
+        GridPoint& operator--()
         {
             if (!y)
             {
@@ -76,13 +77,14 @@ namespace board
     {
     private:
         std::bitset< PointStateBits * W * H > buf;
+        friend class std::hash<BoardGrid>;
 
         static inline std::size_t xyToIndex(std::size_t x, std::size_t y)
         {
             return (x * W + y) * PointStateBits;
         }
     public:
-        using Point = Point<W, H>;
+        using Point = GridPoint<W, H>;
         BoardGrid() = default;
 
         inline PointState get(std::size_t x, std::size_t y) const
@@ -104,6 +106,23 @@ namespace board
         inline void set(Point point, PointState pointState)
         {
             set(point.x, point.y, pointState);
+        }
+    };
+
+}
+
+
+namespace std
+{
+    template<std::size_t W, std::size_t H>
+    struct hash<board::BoardGrid<W, H>> {
+    private:
+        using bg_t = board::BoardGrid<W, H>;
+        hash<decltype(declval<bg_t>().buf)> h;
+    public:
+        std::size_t operator()(const bg_t &bg) const
+        {
+            return h(bg.buf);
         }
     };
 }
