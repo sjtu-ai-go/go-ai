@@ -5,8 +5,67 @@
 #include <bitset>
 #include <climits>
 #include <cstring>
+#include <iterator>
 namespace board
 {
+    template<std::size_t W, std::size_t H>
+    struct Point
+    {
+        char x, y;
+        Point(char x, char y): x(x), y(y) {}
+        void right()
+        {
+            ++y;
+        }
+        void left()
+        {
+            --y;
+        }
+        void down()
+        {
+            ++x;
+        }
+        void up()
+        {
+            --x;
+        }
+        Point& operator++()
+        {
+            if (++y == W)
+            {
+                y = 0;
+                ++x;
+            }
+            return *this;
+        }
+        Point& operator--()
+        {
+            if (!y)
+            {
+                y = W - 1;
+                --x;
+            } else
+                --y;
+            return *this;
+        }
+        bool is_top() const
+        {
+            return !x;
+        }
+        bool is_bottom() const
+        {
+            return x == H - 1;
+        }
+        bool is_left() const
+        {
+            return !y;
+        }
+        bool is_right() const
+        {
+            return y == W - 1;
+        }
+    };
+
     enum struct PointState { NA, W, B }; // state of a point on board
     static const std::size_t PointStateBits = 2; // Can be represented in 2 bits since 2 < 2 ^ 2
     enum struct Player { W, B }; // White or Black side
@@ -23,6 +82,7 @@ namespace board
             return (x * W + y) * PointStateBits;
         }
     public:
+        using Point = Point<W, H>;
         BoardGrid() = default;
 
         inline PointState get(std::size_t x, std::size_t y) const
@@ -30,10 +90,20 @@ namespace board
             return static_cast<PointState>(((buf[xyToIndex(x,y) + 1]) << 1) + buf[xyToIndex(x,y)]);
         }
 
-        inline PointState set(std::size_t x, std::size_t y, PointState pointState)
+        inline void set(std::size_t x, std::size_t y, PointState pointState)
         {
             buf[xyToIndex(x,y) + 1] = static_cast<int>(pointState) & 2;
             buf[xyToIndex(x,y)] = static_cast<int>(pointState) & 1;
+        }
+
+        inline PointState get(Point point) const
+        {
+            return get(point.x, point.y);
+        }
+
+        inline void set(Point point, PointState pointState)
+        {
+            set(point.x, point.y, pointState);
         }
     };
 }
