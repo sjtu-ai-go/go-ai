@@ -18,6 +18,7 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 ################################
 
 set(gtplib_SOURCE_DIR vendor/gtplib)
+find_package(Boost REQUIRED)
 include_directories(${gtplib_SOURCE_DIR})
 
 ################################
