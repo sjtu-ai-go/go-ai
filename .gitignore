@@ -31,3 +31,5 @@
 *.log
 /build
 .vagrant/
+
+/.idea
