@@ -168,7 +168,7 @@ namespace board
         }
         Player getPlayer() const
         {
-            return player;
+            return static_cast<Player>(static_cast<unsigned>(player) & 1);
         }
         void setPlayer(Player p)
         {

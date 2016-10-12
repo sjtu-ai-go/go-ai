@@ -89,3 +89,26 @@ TEST(BoardTest, TestBoardGridHash)
 
 }
 
+TEST(BoardTest, TestGroupNode)
+{
+    using namespace board;
+    using namespace std;
+    GroupNode *head = new GroupNode(new GroupNode(nullptr, Player::B, 15), Player::W, 300);
+    EXPECT_EQ(300, head->getLiberty());
+    EXPECT_EQ(Player::W, head->getPlayer());
+    EXPECT_EQ(15, head->getNext()->getLiberty());
+    EXPECT_EQ(Player::B, head->getNext()->getPlayer());
+
+    head->setLiberty(361);
+    EXPECT_EQ(361, head->getLiberty());
+    head->setPlayer(Player::B);
+    EXPECT_EQ(Player::B, head->getPlayer());
+    EXPECT_EQ(361, head->getLiberty());
+    delete head->getNext();
+    head->setNext(new GroupNode(nullptr, Player::B, 22));
+    EXPECT_EQ(22, head->getNext()->getLiberty());
+
+    delete head->getNext();
+    delete head;
+}
+
