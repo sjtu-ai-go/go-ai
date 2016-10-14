@@ -22,6 +22,13 @@ find_package(Boost REQUIRED)
 include_directories(${gtplib_SOURCE_DIR})
 
 ################################
+# Spdlog
+################################
+set(spdlog_SOURCE_DIR vendor/spdlog)
+add_subdirectory (${spdlog_SOURCE_DIR})
+include_directories(${spdlog_SOURCE_DIR}/include)
+
+################################
 # Main program
 ################################
 
@@ -37,10 +44,13 @@ add_executable(go-ai ${go-ai_SRC})
 ################################
 add_executable(gtplibTest ${gtplib_SOURCE_DIR}/test/test.cpp)
 add_executable(board_test src/common/board_test.cpp)
+add_executable(logger_test src/common/logger_test.cpp src/common/logger.cpp)
 
 # Link test executable against gtest & gtest_main
 target_link_libraries(gtplibTest gtest gtest_main)
 target_link_libraries(board_test gtest gtest_main)
+target_link_libraries(logger_test gtest gtest_main)
 
 add_test( gtplibTest gtplibTest )
 add_test(board_test board_test)
+add_test(logger_test logger_test)
