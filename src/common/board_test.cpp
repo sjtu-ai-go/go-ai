@@ -114,3 +114,32 @@ TEST(BoardTest, TestGroupNode)
     delete head;
 }
 
+TEST(BoardTest, TestPosGroup)
+{
+    using namespace board;
+    auto n1 = std::unique_ptr<GroupNode>(new GroupNode(NULL, Player::B, 10));
+    auto n2 = std::unique_ptr<GroupNode>(new GroupNode(n1.get(), Player::W, 23));
+
+    PosGroup<19, 19> pg;
+    using PT = typename decltype(pg)::PointType;
+    EXPECT_EQ(NULL, pg.get(PT{2, 4}));
+    pg.set(PT{18, 6}, n1.get());
+    pg.set(PT{0, 18}, n2.get());
+    pg.set(PT{0, 17}, n1.get());
+    pg.set(PT{18, 5}, n2.get());
+
+    for (char i=0; i<19; ++i)
+        for (char j=0; j<19; ++j)
+        {
+            if ((i == 18 && j == 6) || (i == 0 && j == 17))
+                EXPECT_EQ(n1.get(), pg.get(PT{i, j}));
+            else if ((i==0 && j==18) || (i==18 && j == 5))
+                EXPECT_EQ(n2.get(), pg.get(PT{i, j}));
+            else
+                EXPECT_EQ(NULL, pg.get(PT{i, j}));
+        }
+
+    pg.set(PT{18, 6}, n2.get());
+    EXPECT_EQ(n2.get(), pg.get(PT{18, 6}));
+}
+

@@ -11,12 +11,12 @@
 namespace board
 {
     // PosGroup: GroupNode * [19][19]. If that position does not has a piece, the result would be nullptr
-    // actually each GroupNode* will be stored in a 6-bit unsigned char
+    // actually each GroupNode* will be stored in a 6-byte unsigned char
     template <std::uint_least8_t W, std::uint_least8_t H>
-    class PosGroup
+    class PosGroup: public compgrid::CompressedGrid<GroupNode*, W, H, 48>
     {
-    private:
-
+    public:
+        PosGroup() = default;
     };
 }
 #endif //GO_AI_POS_GROUP_HPP
