@@ -12,26 +12,27 @@ TEST(BoardTest, TestBoardGridGetSet)
 {
     using namespace std;
     board::BoardGrid<19, 19> bg;
-    EXPECT_EQ(board::PointState::NA, bg.get(18, 18));
-    EXPECT_EQ(board::PointState::NA, bg.get(0,0));
-    EXPECT_EQ(board::PointState::NA, bg.get(2,5));
+    using PT = typename decltype(bg)::PointType;
+    EXPECT_EQ(board::PointState::NA, bg.get(PT {18, 18 }));
+    EXPECT_EQ(board::PointState::NA, bg.get(PT {0,0 }));
+    EXPECT_EQ(board::PointState::NA, bg.get(PT {2,5}));
 
     std::array<std::array<board::PointState, 19>, 19> arr {};
 
     for (int i=0; i<100; ++i)
     {
-        size_t x, y;
+        char x, y;
         do
         {
             x = rand() % 19;
             y = rand() % 19;
         } while(arr[x][y] != board::PointState::NA); // set an arbitary empty point
         board::PointState st { static_cast<board::PointState>(rand() % 3) };
-        bg.set(x, y, st);
+        bg.set(PT{x, y}, st);
         arr[x][y] = st;
         for (x=0; x<19; ++x)
             for (y=0; y<19; ++y)
-                EXPECT_EQ(bg.get(x,y), arr[x][y]);
+                EXPECT_EQ(bg.get(PT{x, y}), arr[x][y]);
     }
 }
 
@@ -40,7 +41,7 @@ TEST(BoardTest, TestGridPoint)
     using namespace std;
     using bg_t = board::BoardGrid<19, 19>;
     bg_t bg;
-    bg_t::Point point(2, 0);
+    bg_t::PointType point(2, 0);
     EXPECT_EQ(2, point.x);
     EXPECT_EQ(0, point.y);
 
@@ -66,6 +67,7 @@ TEST(BoardTest, TestBoardGridHash)
 {
     using bg_t = board::BoardGrid<18, 18>;
     bg_t bg;
+    using PT = typename bg_t::PointType;
 
     std::hash<bg_t> h;
 
@@ -74,13 +76,13 @@ TEST(BoardTest, TestBoardGridHash)
     v.push_back(h(bg));
     for (int i=0; i<100; ++i)
     {
-        std::size_t x, y;
+        char x, y;
         do
         {
             x = std::rand() % 18;
             y = std::rand() % 18;
-        } while(bg.get(x, y) != board::PointState::NA);
-        bg.set(x, y, static_cast<board::PointState>(std::rand() % 2 + 1));
+        } while(bg.get(PT{x, y}) != board::PointState::NA);
+        bg.set(PT{x, y}, static_cast<board::PointState>(std::rand() % 2 + 1));
         v.push_back(h(bg));
     }
 

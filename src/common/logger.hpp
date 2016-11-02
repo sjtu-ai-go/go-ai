@@ -18,5 +18,10 @@ public:
     }
 };
 
+inline std::shared_ptr<spdlog::logger> getGlobalLogger()
+{
+    return LoggerSingleton::get();
+}
+
 
 #endif //GO_AI_LOGGER_HPP

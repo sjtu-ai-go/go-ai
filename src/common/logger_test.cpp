@@ -8,7 +8,7 @@
 TEST(LoggerTest, TestLoggerSingleton)
 {
     testing::internal::CaptureStdout();
-    auto logger = LoggerSingleton::get();
+    auto logger = getGlobalLogger();
     logger->info("This is a test message!");
     std::string out = testing::internal::GetCapturedStdout();
     EXPECT_TRUE(out.find("This is a test message") != out.npos) <<
