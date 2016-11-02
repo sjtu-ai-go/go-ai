@@ -49,7 +49,7 @@ add_executable(go-ai ${go-ai_SRC})
 # Unit Tests
 ################################
 add_executable(gtplibTest ${gtplib_SOURCE_DIR}/test/test.cpp)
-add_executable(board_test src/common/board_test.cpp src/common/board/board_grid.hpp src/common/board/grid_point.hpp src/common/board/basic.hpp src/common/board/group_node.hpp src/common/board/pos_group.hpp)
+add_executable(board_test src/common/board_test.cpp src/common/board/board_grid.hpp src/common/board/grid_point.hpp src/common/board/basic.hpp src/common/board/group_node.hpp src/common/board/pos_group.hpp src/common/board/board_class.hpp)
 add_executable(logger_test src/common/logger_test.cpp src/common/logger.cpp)
 
 # Link test executable against gtest & gtest_main

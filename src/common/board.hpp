@@ -6,4 +6,5 @@
 #include "board/board_grid.hpp"
 #include "board/group_node.hpp"
 #include "board/pos_group.hpp"
+#include "board/board_class.hpp"
 #endif

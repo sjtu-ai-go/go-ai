@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 #include <compressed_grid.hpp>
 
 namespace board
@@ -75,6 +76,15 @@ namespace board
             if (!this->is_top()) f(up_point());
             if (!this->is_right()) f(right_point());
             if (!this->is_bottom()) f(down_point());
+        }
+        std::vector<GridPoint> get_adjacent_point() const
+        {
+            std::vector<GridPoint> v;
+            if (!this->is_left()) v.push_back(left_point());
+            if (!this->is_top()) v.push_back(up_point());
+            if (!this->is_right()) v.push_back(right_point());
+            if (!this->is_bottom()) v.push_back(down_point());
+            return v;
         }
     };
 }
