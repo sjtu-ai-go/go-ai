@@ -6,6 +6,7 @@
 #include <vector>
 #include <functional>
 #include <gtest/gtest.h>
+#include <list>
 #include "board.hpp"
 
 TEST(BoardTest, TestBoardGridGetSet)
@@ -95,51 +96,59 @@ TEST(BoardTest, TestGroupNode)
 {
     using namespace board;
     using namespace std;
-    GroupNode *head = new GroupNode(new GroupNode(nullptr, Player::B, 15), Player::W, 300);
-    EXPECT_EQ(300, head->getLiberty());
+
+    list<GroupNode<19, 19>> gnl;
+    using gn_t = GroupNode<19, 19>;
+    gnl.insert(gnl.begin(), gn_t(Player::W));
+    auto head = gnl.begin();
+
+    gnl.insert(gnl.cend(), gn_t(Player::B));
+
+    EXPECT_EQ(0, head->getLiberty());
     EXPECT_EQ(Player::W, head->getPlayer());
-    EXPECT_EQ(15, head->getNext()->getLiberty());
-    EXPECT_EQ(Player::B, head->getNext()->getPlayer());
-
-    head->setLiberty(361);
-    EXPECT_EQ(361, head->getLiberty());
-    head->setPlayer(Player::B);
-    EXPECT_EQ(Player::B, head->getPlayer());
-    EXPECT_EQ(361, head->getLiberty());
-    delete head->getNext();
-    head->setNext(new GroupNode(nullptr, Player::B, 22));
-    EXPECT_EQ(22, head->getNext()->getLiberty());
-
-    delete head->getNext();
-    delete head;
+    auto tail = std::next(head);
+    EXPECT_EQ(0, tail->getLiberty());
+    EXPECT_EQ(Player::B, tail->getPlayer());
 }
 
 TEST(BoardTest, TestPosGroup)
 {
     using namespace board;
-    auto n1 = std::unique_ptr<GroupNode>(new GroupNode(NULL, Player::B, 10));
-    auto n2 = std::unique_ptr<GroupNode>(new GroupNode(n1.get(), Player::W, 23));
+    using gn_t = GroupNode<19, 19>;
+    using gnl_t = std::list<gn_t>;
+    gnl_t gnl;
 
-    PosGroup<19, 19> pg;
+    gnl.insert(gnl.cend(), gn_t(Player::B));
+    gnl.insert(gnl.cend(), gn_t(Player::W));
+    auto n1 = gnl.begin();
+    auto n2 = std::next(n1);
+
+    PosGroup<19, 19> pg(gnl.end());
     using PT = typename decltype(pg)::PointType;
-    EXPECT_EQ(NULL, pg.get(PT{2, 4}));
-    pg.set(PT{18, 6}, n1.get());
-    pg.set(PT{0, 18}, n2.get());
-    pg.set(PT{0, 17}, n1.get());
-    pg.set(PT{18, 5}, n2.get());
+    EXPECT_EQ(gnl.end(), pg.get(PT{2, 4}));
+    pg.set(PT{18, 6}, n1);
+    pg.set(PT{0, 18}, n2);
+    pg.set(PT{0, 17}, n1);
+    pg.set(PT{18, 5}, n2);
 
     for (char i=0; i<19; ++i)
         for (char j=0; j<19; ++j)
         {
             if ((i == 18 && j == 6) || (i == 0 && j == 17))
-                EXPECT_EQ(n1.get(), pg.get(PT{i, j}));
+                EXPECT_EQ(n1, pg.get(PT{i, j}));
             else if ((i==0 && j==18) || (i==18 && j == 5))
-                EXPECT_EQ(n2.get(), pg.get(PT{i, j}));
+                EXPECT_EQ(n2, pg.get(PT{i, j}));
             else
-                EXPECT_EQ(NULL, pg.get(PT{i, j}));
+                EXPECT_EQ(gnl.end(), pg.get(PT{i, j}));
         }
 
-    pg.set(PT{18, 6}, n2.get());
-    EXPECT_EQ(n2.get(), pg.get(PT{18, 6}));
+    pg.set(PT{18, 6}, n2);
+    EXPECT_EQ(n2, pg.get(PT{18, 6}));
+}
+
+TEST(BoardTest, TestBoardClass)
+{
+    using namespace board;
+    Board<19, 19> b;
 }
 

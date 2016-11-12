@@ -7,40 +7,33 @@
 
 #include <climits>
 #include <cstdint>
+#include <compressed_grid.hpp>
 #include "basic.hpp"
 
 namespace board
 {
-    // GroupNode is a linked list storing information about one connected group
-    static_assert(CHAR_BIT == 8, "WTF! 1 char != 8 bits on your platform");
-    struct GroupNode;
-    static_assert(sizeof(GroupNode*) <= 8, "Pointer on your platform > 8. Compression unsupported");
-    struct alignas(8) GroupNode
+    template<std::size_t W, std::size_t H>
+    struct GroupNode
     {
+    public:
+        using CGType = compgrid::CompressedGrid<bool, W, H, 1>;
+        using PointType = typename CGType::PointType;
     private:
-        std::uintptr_t next: 48; // on AMD64 virtual address only supports low 48bits
-        Player player: 1;
-        unsigned int liberty: 15;
+        Player player;
+        CGType liberty_grid;
     public:
         GroupNode() = default;
-        GroupNode(GroupNode *pgn, Player p, unsigned int liberty):
-                next(reinterpret_cast<std::uintptr_t >(pgn)), player(p), liberty(liberty)
+        GroupNode(Player p, const CGType &cg = CGType()):
+                player(p), liberty_grid(cg)
         {}
-        GroupNode* getNext() const
+        std::size_t getLiberty() const
         {
-            return reinterpret_cast<GroupNode*>(next);
+            return liberty_grid.count();
         }
-        void setNext(GroupNode *pgn)
+        // set a position is/is not controlled by this group
+        void setLiberty(typename CGType::PointType point, bool value)
         {
-            next = reinterpret_cast<std::uintptr_t>(pgn);
-        }
-        unsigned int getLiberty()
-        {
-            return liberty;
-        }
-        void setLiberty(unsigned int lib)
-        {
-            liberty = lib;
+            liberty_grid.set(point, value);
         }
         void addLiberty(int libDelta)
         {
@@ -55,7 +48,5 @@ namespace board
             player = p;
         }
     };
-    static_assert(sizeof(GroupNode) == 8, "Compression failed");
-
 }
 #endif //GO_AI_GROUP_NODE_HPP
