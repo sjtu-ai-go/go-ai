@@ -150,5 +150,8 @@ TEST(BoardTest, TestBoardClass)
 {
     using namespace board;
     Board<19, 19> b;
+    using BT = Board<19, 19>;
+    using PT = typename BT::PointType;
+    b.place(PT {1, 3}, Player::W);
 }
 

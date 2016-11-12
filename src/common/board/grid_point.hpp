@@ -19,6 +19,7 @@ namespace board
         using BaseT = compgrid::GridPoint<W, H>;
     public:
         GridPoint() = default;
+        GridPoint(char x, char y): BaseT(x, y) {}
         GridPoint& left()
         {
             static_cast<BaseT&>(*this).left();

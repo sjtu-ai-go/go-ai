@@ -34,7 +34,7 @@ namespace board
     {
     private:
         BoardGrid<W, H> boardGrid_;
-        std::list<GroupNode<W, H>> groupNodeList_;
+        std::list< GroupNode<W, H> > groupNodeList_;
         PosGroup<W, H> posGroup_;
         std::size_t step_ = 0;
         std::size_t lastStateHash_ = 0x24512211u; // The hash of board 1 steps before. Used to validate ko.
@@ -44,6 +44,8 @@ namespace board
         using PointType = GridPoint<W, H>;
         using GroupNodeType = GroupNode<W, H>;
         using GroupListType = std::list< GroupNodeType >;
+        using GroupIterator = typename GroupListType::iterator;
+        using GroupConstIterator = typename GroupListType::const_iterator;
         friend class std::hash<Board>;
         static const std::size_t w = W;
         static const std::size_t h = H;
@@ -86,12 +88,12 @@ namespace board
             return ans;
         }
         // Returns first node(may be empty) of GroupNode link list
-        typename GroupListType::const_iterator groupBegin() const
+        GroupConstIterator groupBegin() const
         {
             return groupNodeList_.cbegin();
         }
 
-        typename GroupListType::const_iterator groupEnd() const
+        GroupConstIterator groupEnd() const
         {
             return groupNodeList_.cend();
         }
@@ -102,8 +104,21 @@ namespace board
         {
             return posGroup_.get(p);
         }
-        void removeGroup(GroupNodeType *);
+        void removeGroup(GroupIterator group);
+        void mergeGroup(GroupIterator thisGroup, GroupIterator thatGroup);
     };
+
+    template<std::size_t W, std::size_t H>
+    void Board<W, H>::removeGroup(GroupIterator group)
+    {
+        // Todo: Implement this
+    }
+
+    template<std::size_t W, std::size_t H>
+    void Board<W, H>::mergeGroup(GroupIterator thisGroup, GroupIterator thatGroup)
+    {
+        // Todo: Implement this
+    }
 
     template<std::size_t W, std::size_t H>
     void Board<W,H>::place(PointType p, Player player)
@@ -116,7 +131,7 @@ namespace board
         Player opponent = getOpponentPlayer(player);
 
         // --- Decrease liberty of adjacent groups
-        std::vector<GroupNodeType *> adjGroups;
+        std::vector<GroupIterator> adjGroups;
         p.for_each_adjacent([&](PointType adjP) { adjGroups.push_back(getPointGroup(adjP)); });
 
         // Remove duplicate groups
@@ -124,7 +139,7 @@ namespace board
         adjGroups.erase(newEnd, adjGroups.end());
 
         // Update liberty and remove opponent's dead groups (liberty of our group may change)
-        std::for_each(adjGroups.begin(), adjGroups.end(), [&](GroupNodeType * pgn)
+        std::for_each(adjGroups.begin(), adjGroups.end(), [&](GroupIterator pgn)
         {
             pgn->setLiberty(p, false);
             if (pgn->getPlayer() == opponent && pgn->getLiberty() == 0)
@@ -138,11 +153,16 @@ namespace board
             if (getPointState(adjP) == PointState::NA)
                 gn.setLiberty(adjP, true);
         });
-        groupNodeList_.insert(groupNodeList_.cbegin(), gn);
+        auto thisGroup = groupNodeList_.insert(groupNodeList_.cbegin(), gn);
 
-        // --- TODO: merge our groups
+        // --- Merge our group
+        std::for_each(adjGroups.begin(), adjGroups.end(), [&](GroupIterator adjGroup) {
+            mergeGroup(thisGroup, adjGroup);
+        });
 
-        // --- TODO: remove our dead groups
+        // --- remove our dead groups
+        if (thisGroup->getLiberty() == 0)
+            removeGroup(thisGroup);
 
     }
 
