@@ -1,13 +1,15 @@
-#include "engines/exampleEngine.hpp"
-#include "common/logger.hpp"
-#include <boost/program_options.hpp>
-#include <engines/engine_factory.hpp>
-
 #include <iostream>
 #include <cstdlib>
 #include <string>
 #include <vector>
 #include <utility>
+
+#include "engines/example_engine.hpp"
+#include "common/logger.hpp"
+#include <boost/program_options.hpp>
+#include <gtplib/gtpfrontend.hpp>
+#include "engines/engine_factory.hpp"
+
 
 struct ParsedResult
 {
@@ -55,5 +57,12 @@ int main(int argc, char *argv[])
         std::exit(EXIT_FAILURE);
     }
     logger->info("Default engine is {}", cmd.engineName);
+
+    //------
+    logger->info("Start running engine...");
+    gtp::EngineFrontend<gtp::IEngine> frontend (std::cin, std::cout, *engine);
+    frontend.start();
+
+
 
 }

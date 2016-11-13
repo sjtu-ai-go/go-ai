@@ -57,7 +57,7 @@ set(logger_SRC src/common/logger.cpp src/common/logger.hpp)
 
 set(common_SRC ${board_SRC} ${logger_SRC})
 
-set(engines_SRC src/engines/exampleEngine.hpp src/engines/engine_factory.hpp)
+set(engines_SRC src/engines/example_engine.hpp src/engines/example_engine.cpp src/engines/engine_factory.hpp)
 
 ################################
 # Main program
