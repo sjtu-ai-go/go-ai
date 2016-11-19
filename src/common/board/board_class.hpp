@@ -40,7 +40,9 @@ namespace board
         std::size_t lastStateHash_ = 0x24512211u; // The hash of board 1 steps before. Used to validate ko.
         std::size_t curStateHash_ = 0xc7151360u; // Hash of current board
     public:
-        Board() = default;
+        Board(): posGroup_(groupNodeList_.end())
+        {
+        }
         using PointType = GridPoint<W, H>;
         using GroupNodeType = GroupNode<W, H>;
         using GroupListType = std::list< GroupNodeType >;
@@ -55,7 +57,7 @@ namespace board
             return boardGrid_.get(p);
         }
         // Returns pointer to group of a point. NULL if there is no piece
-        typename GroupListType::const_iterator getPointGroup(PointType p) const
+        GroupConstIterator getPointGroup(PointType p) const
         {
             return posGroup_.get(p);
         }
@@ -100,7 +102,7 @@ namespace board
 
     private:
         // Internal use only
-        typename GroupListType::iterator getPointGroup(PointType p)
+        GroupIterator getPointGroup(PointType p)
         {
             return posGroup_.get(p);
         }
@@ -132,7 +134,11 @@ namespace board
 
         // --- Decrease liberty of adjacent groups
         std::vector<GroupIterator> adjGroups;
-        p.for_each_adjacent([&](PointType adjP) { adjGroups.push_back(getPointGroup(adjP)); });
+        p.for_each_adjacent([&](PointType adjP) {
+            GroupIterator group = getPointGroup(adjP);
+            if (group != groupNodeList_.end())
+            adjGroups.push_back(group);
+        });
 
         // Remove duplicate groups
         auto newEnd = std::unique(adjGroups.begin(), adjGroups.end());

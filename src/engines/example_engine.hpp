@@ -57,7 +57,7 @@ namespace engines
         virtual void handle (const CmdQuit& cmd) override
         {
             logger->debug("Received quit");
-            std::exit(EXIT_SUCCESS);
+            // No need to std::exit here since GtpLib will stop after this command
         }
         virtual void handle (const CmdBoardSize& cmd) override
         {
