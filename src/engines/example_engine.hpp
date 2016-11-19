@@ -99,7 +99,8 @@ namespace engines
                     y = std::rand() % board.size();
                 } while (board[x][y] != board::PointState::NA);
                 board[x][y] = board::PointState::B;
-                return VertexOrPass(x, y + 1);
+                // output should be (1 to 19, 1 to 19)
+                return VertexOrPass(x + 1, y + 1);
             }
         }
         virtual void handle (const CmdUndo &cmd) override
@@ -113,8 +114,9 @@ namespace engines
             if (move.vertex.type == VertexOrPassType::VERTEX)
             {
                 Vertex v = (Vertex)(move.vertex);
-                logger->debug("Received Play at ({}, {})", v.x, v.y - 1);
-                board[v.x][v.y - 1] = board::PointState::W;
+                logger->debug("Received Play at ({}, {})", v.x -1 , v.y - 1);
+                // Input is (1 to 19, 1 to 19)
+                board[v.x - 1][v.y - 1] = board::PointState::W;
             }
             else
             {
