@@ -29,17 +29,47 @@ This virtual machine also maps port 8080 to host port 8080.
 
 ### Build
 
+#### Build inside vagrant(recommended for dev/test)
+Building&Runninginside the vagrant box is recommended for development and testing, since the `Vagrantfile` unifies the environment.
+
 Log into the box. Then:
 
-```
+```bash
 cd /vagrant  # you should see code in this directory
 mkdir build  # Temporary directory
 cd build
-cmake ..     # This step will generate Makefile
+cmake -DCMake_Build_Type=Debug ..     # This step will generate Makefile with debug flags
+# Or: cmake -DCMake_Build_Type=Release .. 
 make -j4     # Compile with 4 threads
 
 # After above steps binaries should be built under build/
 
 # To run tests:
 ctest
+```
+
+It is not recommended to benchmark built binaries inside virtual machine due to performance.
+#### Build with Xnix or Mingw64/Cygwin on windows
+Almost the same as above. Install `libboost-all-dev`, `cmake`, `g++`(>=5) or `clang++` first.
+
+Cygwin builds may suffer performance loss.
+
+#### Build with MSVC(Untested)
+CMake could transform `CMakeLists.txt` into MSVC solution file `sln`:
+
+- Create a `_build` directory
+- Run `cmake .. -G "Visual Studio 10 Win64"` under `_build` (Replace VS version by yours)
+- Open generated `sln` file with your MSVC, then compile
+
+
+### Keep updated
+
+#### Keep Vagrant image updated
+```
+vagrant provision
+```
+
+#### Keep submodules updated
+```
+git submodule update
 ```

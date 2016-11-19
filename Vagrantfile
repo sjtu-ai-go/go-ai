@@ -64,8 +64,11 @@ Vagrant.configure("2") do |config|
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
    config.vm.provision "shell", inline: <<-SHELL
+     sudo sed -i '/security.ubuntu.com/d' /etc/apt/sources.list
      sudo sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
+     sudo sed -i 's/us.mirrors.ustc.edu.cn/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
+     sudo sed -i 's/mirrors.ustc.edu.cn/ftp.sjtu.edu.cn/g' /etc/apt/sources.list
      apt-get update
-     apt-get install -yy build-essential g++ libboost-dev cmake libsnappy-dev git
+     apt-get install -yy build-essential g++ libboost-dev cmake libsnappy-dev git libboost-all-dev
    SHELL
 end

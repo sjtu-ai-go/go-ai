@@ -3,8 +3,6 @@ project(go-ai CXX)
 
 # Enable C++11
 set (CMAKE_CXX_STANDARD 11)
-set (CMAKE_CXX_FLAGS_DEBUG "-g")
-set (CMAKE_CXX_FLAGS_RELEASE "-g -O2 -flto")
 
 enable_testing()
 
