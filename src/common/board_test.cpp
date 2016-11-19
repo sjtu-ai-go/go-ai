@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 #include <list>
 #include "board.hpp"
+#include "logger.hpp"
 
 TEST(BoardTest, TestBoardGridGetSet)
 {
@@ -117,6 +118,7 @@ TEST(BoardTest, TestPosGroup)
     using gn_t = GroupNode<19, 19>;
     using gnl_t = std::list<gn_t>;
     gnl_t gnl;
+    auto logger = getGlobalLogger();
 
     gnl.insert(gnl.cend(), gn_t(Player::B));
     gnl.insert(gnl.cend(), gn_t(Player::W));
@@ -124,12 +126,14 @@ TEST(BoardTest, TestPosGroup)
     auto n2 = std::next(n1);
 
     PosGroup<19, 19> pg(gnl.end());
+    logger->info("Size of posgroup<19, 19>: {}", sizeof(pg));
+
     using PT = typename decltype(pg)::PointType;
     EXPECT_EQ(gnl.end(), pg.get(PT{2, 4}));
     pg.set(PT{18, 6}, n1);
     pg.set(PT{0, 18}, n2);
-    pg.set(PT{0, 17}, n1);
-    pg.set(PT{18, 5}, n2);
+    pg.merge(PT{18, 6}, PT{0, 17});
+    pg.merge(PT{0, 18}, PT{18, 5});
 
     for (char i=0; i<19; ++i)
         for (char j=0; j<19; ++j)
@@ -142,8 +146,43 @@ TEST(BoardTest, TestPosGroup)
                 EXPECT_EQ(gnl.end(), pg.get(PT{i, j}));
         }
 
-    pg.set(PT{18, 6}, n2);
-    EXPECT_EQ(n2, pg.get(PT{18, 6}));
+    // self-merge n1 <- n1 should be okay
+    pg.merge(PT{18, 6}, PT{0, 17});
+    for (char i=0; i<19; ++i)
+        for (char j=0; j<19; ++j)
+        {
+            if ((i == 18 && j == 6) || (i == 0 && j == 17))
+                EXPECT_EQ(n1, pg.get(PT{i, j}));
+            else if ((i==0 && j==18) || (i==18 && j == 5))
+                EXPECT_EQ(n2, pg.get(PT{i, j}));
+            else
+                EXPECT_EQ(gnl.end(), pg.get(PT{i, j}));
+        }
+
+    // self-merge n2 <- n2 should be okay too
+    pg.merge(PT{0, 18}, PT{18, 5});
+    for (char i=0; i<19; ++i)
+        for (char j=0; j<19; ++j)
+        {
+            if ((i == 18 && j == 6) || (i == 0 && j == 17))
+                EXPECT_EQ(n1, pg.get(PT{i, j}));
+            else if ((i==0 && j==18) || (i==18 && j == 5))
+                EXPECT_EQ(n2, pg.get(PT{i, j}));
+            else
+                EXPECT_EQ(gnl.end(), pg.get(PT{i, j}));
+        }
+    pg.merge(PT{18, 6}, PT{ 18, 5 });
+    pg.merge(PT{0, 18}, PT{18, 5});
+    for (char i=0; i<19; ++i)
+        for (char j=0; j<19; ++j)
+        {
+            if ((i == 18 && j == 6) || (i == 0 && j == 17))
+                EXPECT_EQ(n1, pg.get(PT{i, j}));
+            else if ((i==0 && j==18) || (i==18 && j == 5))
+                EXPECT_EQ(n1, pg.get(PT{i, j})); // n2 should be n1 now
+            else
+                EXPECT_EQ(gnl.end(), pg.get(PT{i, j}));
+        }
 }
 
 TEST(BoardTest, TestBoardClass)

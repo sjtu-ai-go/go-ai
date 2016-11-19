@@ -87,6 +87,14 @@ namespace board
             if (!this->is_bottom()) v.push_back(down_point());
             return v;
         }
+        bool operator ==(const GridPoint &other)
+        {
+            return this->x == other.x && this->y == other.y;
+        }
+        bool operator !=(const GridPoint &other)
+        {
+            return !(*this == other);
+        }
     };
 }
 #endif //GO_AI_GRID_POINT_HPP
