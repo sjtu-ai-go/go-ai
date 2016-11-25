@@ -107,19 +107,58 @@ namespace board
             return posGroup_.get(p);
         }
         void removeGroup(GroupIterator group);
-        void mergeGroup(GroupIterator thisGroup, GroupIterator thatGroup);
+        void mergeGroupAt(PointType thisPoint, PointType otherPoint);
+        std::vector<GroupIterator> getAdjacentGroups(PointType p);
     };
+
+    template<std::size_t W, std::size_t H>
+    auto Board<W, H>::getAdjacentGroups(PointType p) -> std::vector<GroupIterator>
+    {
+        std::vector<GroupIterator> adjGroups;
+        adjGroups.reserve(4);
+        p.for_each_adjacent([&](PointType adjP) {
+            GroupIterator group = getPointGroup(adjP);
+            if (group != groupNodeList_.end())
+                adjGroups.push_back(group);
+        });
+        // remove Duplicated groups
+        auto newEnd = std::unique(adjGroups.begin(), adjGroups.end());
+        adjGroups.erase(newEnd, adjGroups.end());
+        return adjGroups;
+    }
 
     template<std::size_t W, std::size_t H>
     void Board<W, H>::removeGroup(GroupIterator group)
     {
-        // Todo: Implement this
+        std::vector<PointType> point_to_remove;
+        point_to_remove.reserve(W * H);
+        PointType::for_all([&](PointType p) {
+           if (getPointGroup(p) == group)
+           {
+               std::vector<GroupIterator> adjGroups = getAdjacentGroups(p);
+               std::for_each(adjGroups.begin(), adjGroups.end(), [&](GroupIterator adjGroup) {
+                  if (adjGroup != group) adjGroup->setLiberty(p, true);
+               });
+               boardGrid_.set(p, PointState::NA);
+               // posGroup_.set(p, groupNodeList_.end());
+               // cannot delete here, since union-set would stuck into inconsistent state
+               point_to_remove.push_back(p);
+           }
+        });
+        std::for_each(point_to_remove.begin(), point_to_remove.end(), [&](PointType p){
+            posGroup_.set(p, groupNodeList_.end());
+        });
+        groupNodeList_.erase(group);
     }
 
     template<std::size_t W, std::size_t H>
-    void Board<W, H>::mergeGroup(GroupIterator thisGroup, GroupIterator thatGroup)
+    void Board<W, H>::mergeGroupAt(PointType thisPoint, PointType thatPoint)
     {
-        // Todo: Implement this
+        GroupIterator thisGroup = getPointGroup(thisPoint), thatGroup = getPointGroup(thatPoint);
+        posGroup_.merge(thisPoint, thatPoint);
+
+        thisGroup->mergeLiberty(*thatGroup);
+        groupNodeList_.erase(thatGroup);
     }
 
     template<std::size_t W, std::size_t H>
@@ -133,16 +172,7 @@ namespace board
         Player opponent = getOpponentPlayer(player);
 
         // --- Decrease liberty of adjacent groups
-        std::vector<GroupIterator> adjGroups;
-        p.for_each_adjacent([&](PointType adjP) {
-            GroupIterator group = getPointGroup(adjP);
-            if (group != groupNodeList_.end())
-            adjGroups.push_back(group);
-        });
-
-        // Remove duplicate groups
-        auto newEnd = std::unique(adjGroups.begin(), adjGroups.end());
-        adjGroups.erase(newEnd, adjGroups.end());
+        std::vector<GroupIterator> adjGroups = getAdjacentGroups(p);
 
         // Update liberty and remove opponent's dead groups (liberty of our group may change)
         std::for_each(adjGroups.begin(), adjGroups.end(), [&](GroupIterator pgn)
@@ -162,8 +192,12 @@ namespace board
         auto thisGroup = groupNodeList_.insert(groupNodeList_.cbegin(), gn);
 
         // --- Merge our group
-        std::for_each(adjGroups.begin(), adjGroups.end(), [&](GroupIterator adjGroup) {
-            mergeGroup(thisGroup, adjGroup);
+        p.for_each_adjacent([&](PointType adjP) {
+            GroupIterator adjPointGroup = getPointGroup(adjP);
+            if (adjPointGroup->getPlayer() == player && adjPointGroup != thisGroup)
+            {
+                mergeGroupAt(p, adjP);
+            }
         });
 
         // --- remove our dead groups

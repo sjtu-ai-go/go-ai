@@ -47,6 +47,14 @@ namespace board
         {
             player = p;
         }
+
+        void mergeLiberty(const GroupNode &other)
+        {
+            if (&other != this)
+            {
+                liberty_grid |= other.liberty_grid;
+            }
+        }
     };
 }
 #endif //GO_AI_GROUP_NODE_HPP
