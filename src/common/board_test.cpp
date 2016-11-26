@@ -249,7 +249,7 @@ bool check(int (&arr)[ArrW][ArrH],board::Board<W, H> &b)
 };
 
 
-TEST(BoardTest, TestBoardClass1)
+TEST(BoardTest, TestBoardClassPlace1)
 {
     using namespace board;
     auto logger = getGlobalLogger();
@@ -276,7 +276,7 @@ TEST(BoardTest, TestBoardClass1)
     EXPECT_TRUE(check(result, b));
 }
 
-TEST(BoardTest, TestBoardClass2)
+TEST(BoardTest, TestBoardClassPlace2)
 {
     using namespace board;
     auto logger = getGlobalLogger();
@@ -303,7 +303,7 @@ TEST(BoardTest, TestBoardClass2)
     EXPECT_TRUE(check(result, b));
 }
 
-TEST(BoardTest, TestBoardClass3)
+TEST(BoardTest, TestBoardClassPlace3)
 {
     using namespace board;
     auto logger = getGlobalLogger();
@@ -330,7 +330,7 @@ TEST(BoardTest, TestBoardClass3)
     EXPECT_TRUE(check(result, b));
 }
 
-TEST(BoardTest, TestBoardClass4)
+TEST(BoardTest, TestBoardClassPlace4)
 {
     using namespace board;
     auto logger = getGlobalLogger();

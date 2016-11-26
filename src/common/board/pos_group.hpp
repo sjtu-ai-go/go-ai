@@ -28,14 +28,14 @@ namespace board
         using PointType = GridPoint<W, H>;
     protected:
         using ItemType = boost::variant<GroupIterator, PointType>;
-        ItemType arr[W * H];
+        mutable ItemType arr[W * H];
 
         static std::size_t pointToIndex(PointType p)
         {
             return p.x * W + p.y;
         }
 
-        PointType findfa(PointType p)
+        PointType findfa(PointType p) const
         {
             std::size_t idx = pointToIndex(p);
             if (PointType *pp = boost::get<PointType>(&arr[idx]))
@@ -57,7 +57,7 @@ namespace board
         {
             std::fill(std::begin(arr), std::end(arr), default_it);
         }
-        GroupIterator get(PointType p)
+        GroupIterator get(PointType p) const
         {
             PointType fa = findfa(p);
             return boost::get<GroupIterator>(arr[pointToIndex(fa)]);

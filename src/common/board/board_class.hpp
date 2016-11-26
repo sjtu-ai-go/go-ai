@@ -17,13 +17,14 @@
 #include "board_grid.hpp"
 #include <ostream>
 #include <common/logger.hpp>
+#include <spdlog/fmt/ostr.h>
 
 namespace board
 {
     template<std::size_t W, std::size_t H>
     class Board;
     template<std::size_t W, std::size_t H>
-    std::ostream &  operator<<(std::ostream & o, Board<W, H> & b);
+    std::ostream &  operator<<(std::ostream & o, const Board<W, H> & b);
 }
 
 namespace std
@@ -63,7 +64,7 @@ namespace board
             return boardGrid_.get(p);
         }
         // Returns pointer to group of a point. NULL if there is no piece
-        GroupConstIterator getPointGroup(PointType p)
+        GroupConstIterator getPointGroup(PointType p) const
         {
             return posGroup_.get(p);
         }
@@ -106,7 +107,7 @@ namespace board
             return groupNodeList_.cend();
         }
 
-        friend std::ostream& operator<< <>(std::ostream&, Board&);
+        friend std::ostream& operator<< <>(std::ostream&, const Board&);
 
     private:
         // Internal use only
@@ -234,15 +235,33 @@ namespace board
                 logger->trace("Removing group at ({}, {})", (int)p.x, (int) p.y);
             }
         });
+        logger->trace("After move:{}", *this);
+        std::hash<Board> h;
+        std::size_t hash_v = h(*this);
+        logger->trace("last 2 hash: {}, last 1 hash: {}, cur Hash: {}", lastStateHash_, curStateHash_, hash_v);
+        lastStateHash_ = curStateHash_;
+        curStateHash_ = hash_v;
+        ++step_;
     }
 
     template<std::size_t W, std::size_t H>
     auto Board<W,H>::getPosStatus(PointType p, Player player) -> Board::PositionStatus
     {
+        if (getPointState(p) != PointState::NA)
+            return Board::PositionStatus::NOTEMPTY;
+        Board testBoard = *this;
 
+        std::size_t last2hash = testBoard.lastStateHash_;
+        testBoard.place(p, player);
+        if (testBoard.lastStateHash_ == testBoard.curStateHash_)
+            return Board::PositionStatus::NOCHANGE;
+        if (testBoard.curStateHash_ == last2hash)
+            return Board::PositionStatus::KO;
+        return Board::PositionStatus::OK;
     };
+
     template<std::size_t W, std::size_t H>
-    std::ostream &  operator<<(std::ostream & o, Board<W, H> & b) {
+    std::ostream &  operator<<(std::ostream & o, const Board<W, H> & b) {
         using PT = typename Board<W, H>::PointType;
         o << "Points" << std::endl;
         PT::for_all([&](PT p) {
