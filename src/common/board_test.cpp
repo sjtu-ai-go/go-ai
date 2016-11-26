@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstddef>
 #include <vector>
+#include <map>
 #include <functional>
 #include <gtest/gtest.h>
 #include <list>
@@ -185,12 +186,173 @@ TEST(BoardTest, TestPosGroup)
         }
 }
 
-TEST(BoardTest, TestBoardClass)
+
+using GraphItem = std::pair<int, board::Player>;
+const GraphItem O = GraphItem(0, board::Player::B);
+// Convert
+// 1 2
+// 4 3
+// to (0, 0), (0, 1), (1, 1), (1, 0)
+template<std::size_t W, std::size_t H, std::size_t ArrW, std::size_t ArrH>
+std::vector<std::pair<board::GridPoint<W, H>, board::Player>> graphToPoint(GraphItem (&arr)[ArrW][ArrH])
+{
+    static_assert(ArrW <= W && ArrH <= H, "Size of array must <= size of (W, H)");
+    std::map<int, std::pair<board::GridPoint<W, H>, board::Player>> m;
+    for (std::size_t i=0; i<ArrW; ++i)
+        for (std::size_t j=0; j<ArrH; ++j)
+        {
+            if (arr[i][j] != O)
+                m.insert(
+                        std::make_pair(arr[i][j].first,
+                                       std::make_pair(board::GridPoint<W, H>(i, j), arr[i][j].second)
+                        ));
+        }
+    std::vector<std::pair<board::GridPoint<W, H>, board::Player>> ans;
+    std::for_each(m.cbegin(), m.cend(), [&ans](typename decltype(m)::value_type v) {
+        ans.push_back(v.second);
+    });
+    return ans;
+};
+
+std::pair<int, board::Player> operator"" _w(unsigned long long ord)
+{
+    return std::make_pair(ord, board::Player::W);
+};
+
+std::pair<int, board::Player> operator"" _b(unsigned long long ord)
+{
+    return std::make_pair(ord, board::Player::B);
+};
+
+template<std::size_t W, std::size_t H, std::size_t ArrW, std::size_t ArrH>
+bool check(int (&arr)[ArrW][ArrH],board::Board<W, H> &b)
+{
+    using PT = typename board::Board<W, H>::PointType;
+    for (std::size_t i=0; i<ArrW; ++i)
+        for (std::size_t j=0; j<ArrH; ++j)
+        {
+            auto group = b.getPointGroup(PT {(char)i, (char)j});
+            if (group == b.groupEnd())
+            {
+                if (arr[i][j] != 0)
+                    return false;
+            }
+            else
+            {
+                if (arr[i][j] != group->getLiberty())
+                {
+                    return false;
+                }
+            }
+        }
+    return true;
+};
+
+
+TEST(BoardTest, TestBoardClass1)
 {
     using namespace board;
+    auto logger = getGlobalLogger();
+    logger->set_level(spdlog::level::debug);
+
     Board<19, 19> b;
     using BT = Board<19, 19>;
     using PT = typename BT::PointType;
-    b.place(PT {1, 3}, Player::W);
+    GraphItem graph[3][3] = {
+            {1_b, 2_b, 3_b},
+            {4_b, 5_w, 6_b},
+            {7_b, 8_b, O}
+    };
+    auto points = graphToPoint<19, 19>(graph);
+    std::for_each(points.begin(), points.end(), [&](std::pair<board::GridPoint<19, 19>, board::Player> item) {
+        b.place(item.first, item.second);
+        //std::cerr << b << std::endl;
+    });
+    int result[3][3] = {
+            {6, 6, 6},
+            {6, 0, 6},
+            {6, 6, 0}
+    };
+    EXPECT_TRUE(check(result, b));
 }
 
+TEST(BoardTest, TestBoardClass2)
+{
+    using namespace board;
+    auto logger = getGlobalLogger();
+    logger->set_level(spdlog::level::debug);
+
+    Board<3, 3> b;
+    using BT = Board<3, 3>;
+    using PT = typename BT::PointType;
+    GraphItem graph[3][3] = {
+            {1_b, 2_b, 3_b},
+            {4_b, 9_w, 5_b},
+            {6_b, 7_b, 8_b}
+    };
+    auto points = graphToPoint<3, 3>(graph);
+    std::for_each(points.begin(), points.end(), [&](std::pair<board::GridPoint<3, 3>, board::Player> item) {
+        b.place(item.first, item.second);
+        std::cerr << b << std::endl;
+    });
+    int result[3][3] = {
+            {0, 0, 0},
+            {0, 4, 0},
+            {0, 0, 0}
+    };
+    EXPECT_TRUE(check(result, b));
+}
+
+TEST(BoardTest, TestBoardClass3)
+{
+    using namespace board;
+    auto logger = getGlobalLogger();
+    logger->set_level(spdlog::level::debug);
+
+    Board<4, 4> b;
+    using BT = Board<4, 4>;
+    using PT = typename BT::PointType;
+    GraphItem graph[3][3] = {
+            {1_b, 2_b, 3_b},
+            {4_b, 9_w, 5_b},
+            {6_b, 7_b, 8_b}
+    };
+    auto points = graphToPoint<4, 4>(graph);
+    std::for_each(points.begin(), points.end(), [&](std::pair<board::GridPoint<4, 4>, board::Player> item) {
+        b.place(item.first, item.second);
+        //std::cerr << b << std::endl;
+    });
+    int result[3][3] = {
+            {7, 7, 7},
+            {7, 0, 7},
+            {7, 7, 7}
+    };
+    EXPECT_TRUE(check(result, b));
+}
+
+TEST(BoardTest, TestBoardClass4)
+{
+    using namespace board;
+    auto logger = getGlobalLogger();
+    logger->set_level(spdlog::level::debug);
+
+    Board<3, 3> b;
+    using BT = Board<3, 3>;
+    using PT = typename BT::PointType;
+    GraphItem graph[3][3] = {
+            {1_b, 2_w, 6_w},
+            {9_b, 8_w, 4_w},
+            {3_b, 5_b, 7_b}
+    };
+    auto points = graphToPoint<3, 3>(graph);
+    std::for_each(points.begin(), points.end(), [&](std::pair<board::GridPoint<3, 3>, board::Player> item) {
+        b.place(item.first, item.second);
+        //std::cerr << b << std::endl;
+    });
+    int result[3][3] = {
+            {3, 0, 0},
+            {3, 0, 0},
+            {3, 3, 3}
+    };
+    EXPECT_TRUE(check(result, b));
+}

@@ -23,8 +23,10 @@ namespace board
         template<typename FT>
         static void for_all(FT f)
         {
-            for (GridPoint p(0, 0); !p.is_bottom() || !p.is_right(); ++p)
+            GridPoint p(0, 0);
+            for (; !p.is_bottom() || !p.is_right(); ++p)
                 f(p);
+            f(p);
         }
         GridPoint& left()
         {

@@ -15,10 +15,15 @@
 #include "group_node.hpp"
 #include "pos_group.hpp"
 #include "board_grid.hpp"
+#include <ostream>
+#include <common/logger.hpp>
+
 namespace board
 {
     template<std::size_t W, std::size_t H>
     class Board;
+    template<std::size_t W, std::size_t H>
+    std::ostream &  operator<<(std::ostream & o, Board<W, H> & b);
 }
 
 namespace std
@@ -39,6 +44,7 @@ namespace board
         std::size_t step_ = 0;
         std::size_t lastStateHash_ = 0x24512211u; // The hash of board 1 steps before. Used to validate ko.
         std::size_t curStateHash_ = 0xc7151360u; // Hash of current board
+        std::shared_ptr<spdlog::logger> logger = getGlobalLogger();
     public:
         Board(): posGroup_(groupNodeList_.end())
         {
@@ -57,7 +63,7 @@ namespace board
             return boardGrid_.get(p);
         }
         // Returns pointer to group of a point. NULL if there is no piece
-        GroupConstIterator getPointGroup(PointType p) const
+        GroupConstIterator getPointGroup(PointType p)
         {
             return posGroup_.get(p);
         }
@@ -100,9 +106,11 @@ namespace board
             return groupNodeList_.cend();
         }
 
+        friend std::ostream& operator<< <>(std::ostream&, Board&);
+
     private:
         // Internal use only
-        GroupIterator getPointGroup(PointType p)
+        GroupIterator getPointGroup_(PointType p)
         {
             return posGroup_.get(p);
         }
@@ -117,7 +125,7 @@ namespace board
         std::vector<GroupIterator> adjGroups;
         adjGroups.reserve(4);
         p.for_each_adjacent([&](PointType adjP) {
-            GroupIterator group = getPointGroup(adjP);
+            GroupIterator group = getPointGroup_(adjP);
             if (group != groupNodeList_.end())
                 adjGroups.push_back(group);
         });
@@ -154,7 +162,7 @@ namespace board
     template<std::size_t W, std::size_t H>
     void Board<W, H>::mergeGroupAt(PointType thisPoint, PointType thatPoint)
     {
-        GroupIterator thisGroup = getPointGroup(thisPoint), thatGroup = getPointGroup(thatPoint);
+        GroupIterator thisGroup = getPointGroup_(thisPoint), thatGroup = getPointGroup_(thatPoint);
         posGroup_.merge(thisPoint, thatPoint);
 
         thisGroup->mergeLiberty(*thatGroup);
@@ -164,6 +172,7 @@ namespace board
     template<std::size_t W, std::size_t H>
     void Board<W,H>::place(PointType p, Player player)
     {
+        logger->debug("Place at {}, {}: {}", (int)p.x, (int)p.y, (int) player);
         if (getPointState(p) != PointState::NA)
             throw std::runtime_error("Try to place on an non-empty point");
 
@@ -173,37 +182,58 @@ namespace board
 
         // --- Decrease liberty of adjacent groups
         std::vector<GroupIterator> adjGroups = getAdjacentGroups(p);
+        std::for_each(adjGroups.begin(), adjGroups.end(), [&](GroupIterator group) {
+            logger->trace("Adjacent groups's liberty: {}", group->getLiberty());
+        });
 
         // Update liberty and remove opponent's dead groups (liberty of our group may change)
         std::for_each(adjGroups.begin(), adjGroups.end(), [&](GroupIterator pgn)
         {
             pgn->setLiberty(p, false);
             if (pgn->getPlayer() == opponent && pgn->getLiberty() == 0)
+            {
+                logger->trace("Removing group with liberty{}", pgn->getLiberty());
                 removeGroup(pgn); // removing group A won't affect liberty of group B (where A, B belongs to same player)
+            }
         });
 
         // --- Add this group
+        logger->trace("Adding this group");
 
         GroupNodeType gn(player);
         p.for_each_adjacent([&](PointType adjP) {
+            logger->trace("Adjacent point {},{} is empty, setting liberty", (int)adjP.x, (int)adjP.y);
             if (getPointState(adjP) == PointState::NA)
                 gn.setLiberty(adjP, true);
+            logger->trace("Current liberty: {}", gn.getLiberty());
         });
         auto thisGroup = groupNodeList_.insert(groupNodeList_.cbegin(), gn);
+        posGroup_.set(p, thisGroup);
 
         // --- Merge our group
+        logger->trace("Merging group");
         p.for_each_adjacent([&](PointType adjP) {
-            GroupIterator adjPointGroup = getPointGroup(adjP);
-            if (adjPointGroup->getPlayer() == player && adjPointGroup != thisGroup)
+            GroupIterator adjPointGroup = getPointGroup_(adjP);
+            if (adjPointGroup != groupNodeList_.end() &&
+                    adjPointGroup->getPlayer() == player &&
+                    adjPointGroup != thisGroup)
             {
+                logger->trace("Merging group with liberty {}", adjPointGroup->getLiberty());
                 mergeGroupAt(p, adjP);
             }
         });
 
         // --- remove our dead groups
-        if (thisGroup->getLiberty() == 0)
+        if (thisGroup->getLiberty() == 0) {
             removeGroup(thisGroup);
-
+            logger->trace("Removing self...");
+        }
+        p.for_each_adjacent([&](PointType p) {
+            GroupIterator adjPointGroup = getPointGroup_(p);
+            if (adjPointGroup != groupNodeList_.end() && adjPointGroup->getLiberty() == 0) {
+                logger->trace("Removing group at ({}, {})", (int)p.x, (int) p.y);
+            }
+        });
     }
 
     template<std::size_t W, std::size_t H>
@@ -211,6 +241,25 @@ namespace board
     {
 
     };
+    template<std::size_t W, std::size_t H>
+    std::ostream &  operator<<(std::ostream & o, Board<W, H> & b) {
+        using PT = typename Board<W, H>::PointType;
+        o << "Points" << std::endl;
+        PT::for_all([&](PT p) {
+            o << (int) b.boardGrid_.get(p) << ' ';
+            if (p.is_right()) o << std::endl;
+        });
+        o << "Group Liberties"<< std::endl;
+        PT::for_all([&](PT p) {
+            auto group = b.getPointGroup(p);
+            if (group == b.groupNodeList_.end())
+                o << "O\t";
+            else
+                o << group->getLiberty() << "\t";
+            if (p.is_right()) o << std::endl;
+        });
+        return o;
+    }
 }
 
 namespace std

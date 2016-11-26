@@ -47,25 +47,14 @@ namespace board
                 return p;
         }
 
-#ifndef NDEBUG
-        std::vector<GroupIterator> debug_set;
-        GroupIterator default_it;
-#endif
-
     public:
         PosGroup() = default;
         PosGroup(GroupIterator default_it)
-#ifndef NDEBUG
-                :default_it(default_it)
-#endif
         {
             fill(default_it);
         }
         void fill(GroupIterator default_it)
         {
-#ifndef NDEBUG
-            debug_set.clear();
-#endif
             std::fill(std::begin(arr), std::end(arr), default_it);
         }
         GroupIterator get(PointType p)
@@ -76,11 +65,6 @@ namespace board
         // Use this only if this is the first time set(*, this_iterator) is called! otherwise please use merge()!
         void set(PointType p, GroupIterator it)
         {
-#ifndef NDEBUG
-            if (it != default_it && std::find(debug_set.cbegin(), debug_set.cend(), it) != debug_set.cend())
-                throw std::runtime_error("PosGroup: set the same GroupIterator twice: invalid. Please consider use merge()");
-            debug_set.push_back(it);
-#endif
             PointType fa = findfa(p);
             arr[pointToIndex(fa)] = it;
         }
