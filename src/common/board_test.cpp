@@ -356,3 +356,33 @@ TEST(BoardTest, TestBoardClassPlace4)
     };
     EXPECT_TRUE(check(result, b));
 }
+
+
+TEST(BoardTest, TestBoardClassLegalMove1)
+{
+    using namespace board;
+    auto logger = getGlobalLogger();
+    logger->set_level(spdlog::level::debug);
+
+    Board<5, 5> b;
+    using BT = Board<5, 5>;
+    using PT = typename BT::PointType;
+    GraphItem graph[5][5] = {
+            {O,     1_b,    2_w,    3_w,    O},
+            {O,     4_b,    5_w,    O,      6_w},
+            {7_b,   8_b,    9_b,    10_w,   11_w},
+            {O,     12_b,   O,      13_b,   14_b},
+            {O,     O,      15_b,   16_w,   O}
+    };
+    auto points = graphToPoint<5, 5>(graph);
+    std::for_each(points.begin(), points.end(), [&](std::pair<board::GridPoint<5, 5>, board::Player> item) {
+        b.place(item.first, item.second);
+        //std::cerr << b << std::endl;
+    });
+    auto bValid = b.getAllValidPosition(Player::B);
+    EXPECT_EQ(7u, bValid.size());
+
+    auto wValid = b.getAllValidPosition(Player::W);
+    EXPECT_EQ(7u, wValid.size()); // (7, 7) is Ko!
+
+}

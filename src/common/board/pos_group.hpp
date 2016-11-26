@@ -10,13 +10,13 @@
 #include <list>
 #include <algorithm>
 #include <iterator>
-#ifndef NDEBUG
-#include <set>
-#endif
+#include <functional>
+#include <unordered_map>
 #include <boost/variant/variant.hpp>
 #include <boost/variant/get.hpp>
 #include "grid_point.hpp"
 #include "group_node.hpp"
+#include "common/logger.hpp"
 
 namespace board
 {
@@ -24,8 +24,19 @@ namespace board
     class PosGroup
     {
         using GroupIterator = typename std::list< GroupNode<W, H> >::iterator;
+        using GroupConstIterator = typename std::list< GroupNode<W, H> >::const_iterator;
+        std::shared_ptr<spdlog::logger> logger = getGlobalLogger();
     public:
         using PointType = GridPoint<W, H>;
+
+        struct GroupConstIteratorHash
+        {
+            std::hash<const GroupNode<W, H>*> h;
+            std::size_t operator() (GroupConstIterator gci) const
+            {
+                return h(&(*gci));
+            }
+        };
     protected:
         using ItemType = boost::variant<GroupIterator, PointType>;
         mutable ItemType arr[W * H];
@@ -49,6 +60,19 @@ namespace board
 
     public:
         PosGroup() = default;
+        PosGroup(const PosGroup& other,
+                 const std::unordered_map<GroupConstIterator , GroupIterator, GroupConstIteratorHash> &oldToNewMap):
+                arr(other.arr), logger(other.logger)
+        {
+            PointType::for_all([&](PointType p) {
+                if (GroupIterator *pgi = boost::get<GroupIterator>(&arr[pointToIndex(p)]))
+                {
+                    auto it = oldToNewMap.find(*pgi);
+                    assert(it != oldToNewMap.end());
+                    arr[pointToIndex(p)] = it->second;
+                }
+            });
+        }
         PosGroup(GroupIterator default_it)
         {
             fill(default_it);

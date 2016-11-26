@@ -16,6 +16,8 @@
 #include "pos_group.hpp"
 #include "board_grid.hpp"
 #include <ostream>
+#include <unordered_map>
+#include <cassert>
 #include <common/logger.hpp>
 #include <spdlog/fmt/ostr.h>
 
@@ -39,17 +41,16 @@ namespace board
     class Board
     {
     private:
+        std::shared_ptr<spdlog::logger> logger = getGlobalLogger();
         BoardGrid<W, H> boardGrid_;
         std::list< GroupNode<W, H> > groupNodeList_;
         PosGroup<W, H> posGroup_;
         std::size_t step_ = 0;
         std::size_t lastStateHash_ = 0x24512211u; // The hash of board 1 steps before. Used to validate ko.
         std::size_t curStateHash_ = 0xc7151360u; // Hash of current board
-        std::shared_ptr<spdlog::logger> logger = getGlobalLogger();
+        using PosGroupType = PosGroup<W, H>;
+
     public:
-        Board(): posGroup_(groupNodeList_.end())
-        {
-        }
         using PointType = GridPoint<W, H>;
         using GroupNodeType = GroupNode<W, H>;
         using GroupListType = std::list< GroupNodeType >;
@@ -58,6 +59,41 @@ namespace board
         friend class std::hash<Board>;
         static const std::size_t w = W;
         static const std::size_t h = H;
+    private:
+
+        std::unordered_map<GroupConstIterator, GroupIterator, typename PosGroupType::GroupConstIteratorHash>
+        getMapFromOldItToNewIt(GroupListType &newList,
+                               const GroupListType &oldList)
+        {
+            assert(newList.size() == oldList.size());
+            std::unordered_map<GroupConstIterator , GroupIterator, typename PosGroupType::GroupConstIteratorHash> um;
+
+            auto it_new = newList.begin();
+            auto it_old = oldList.cbegin();
+            for(; it_new != newList.end() && it_old != oldList.end(); ++it_new, ++it_old)
+            {
+                um[it_old] = it_new;
+            }
+            um[oldList.end()] = newList.end();
+            return um;
+        };
+    public:
+
+        Board(): posGroup_(groupNodeList_.end())
+        {
+        }
+
+        Board(const Board &other):
+                boardGrid_(other.boardGrid_),
+                groupNodeList_(other.groupNodeList_),
+                posGroup_(other.posGroup_, getMapFromOldItToNewIt(groupNodeList_, other.groupNodeList_)),
+                lastStateHash_(other.lastStateHash_),
+                curStateHash_(other.curStateHash_),
+                step_(other.step_)
+        {
+        }
+
+
         // Returns color of a point
         PointState getPointState(PointType p) const
         {
@@ -90,10 +126,14 @@ namespace board
             std::vector<PointType> ans;
             for (std::size_t i=0; i<W; ++i)
                 for (std::size_t j=0; j<H; ++j)
-                    if (getPosStatus(PointType {i, j}, player) == PositionStatus::OK)
-                    {
-                        ans.push_back(PointType {i, j});
+                {
+                    PositionStatus status = getPosStatus(PointType(i, j), player);
+                    if (status == PositionStatus::OK) {
+                        ans.push_back(PointType(i, j));
+                    } else {
+                        logger->trace("Illegal move at ({}, {}): state: {}", i, j, (int)status);
                     }
+                }
             return ans;
         }
         // Returns first node(may be empty) of GroupNode link list
@@ -250,6 +290,7 @@ namespace board
         if (getPointState(p) != PointState::NA)
             return Board::PositionStatus::NOTEMPTY;
         Board testBoard = *this;
+        logger->trace("After copy: {}", testBoard);
 
         std::size_t last2hash = testBoard.lastStateHash_;
         testBoard.place(p, player);
