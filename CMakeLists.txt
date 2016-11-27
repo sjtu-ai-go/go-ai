@@ -49,13 +49,13 @@ include_directories(${compressedgrid_SOURCE_DIR})
 ################################
 set(board_SRC src/common/board/basic.hpp src/common/board/board_class.hpp src/common/board/board_grid.hpp
         src/common/board/grid_point.hpp src/common/board/group_node.hpp src/common/board/pos_group.hpp
-        src/common/board.hpp)
+        src/common/board.hpp src/common/board.cpp)
 
 set(logger_SRC src/common/logger.cpp src/common/logger.hpp)
 
 set(common_SRC ${board_SRC} ${logger_SRC})
 
-set(engines_SRC src/engines/example_engine.hpp src/engines/example_engine.cpp src/engines/engine_factory.hpp)
+set(engines_SRC src/engines/example_engine.hpp src/engines/example_engine.cpp src/engines/engine_factory.hpp src/common/board/board_class_templ_inst.cpp)
 
 ################################
 # Main program

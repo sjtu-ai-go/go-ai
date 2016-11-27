@@ -7,4 +7,5 @@
 #include "board/group_node.hpp"
 #include "board/pos_group.hpp"
 #include "board/board_class.hpp"
+#include "board/board_class_templ_header.hpp"
 #endif
