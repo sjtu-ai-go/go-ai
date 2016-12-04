@@ -9,7 +9,7 @@ enable_testing()
 ################################
 # Find boost
 ################################
-find_package(Boost 1.52 REQUIRED COMPONENTS program_options)
+find_package(Boost 1.46 REQUIRED COMPONENTS program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 
 ################################
