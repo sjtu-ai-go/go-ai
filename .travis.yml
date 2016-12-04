@@ -6,7 +6,7 @@ before_script:
     - cmake -DCMake_Build_Type="${BUILD_TYPE}" -DCMAKE_C_COMPILER="${X_CC}" -DCMAKE_CXX_COMPILER="${X_CXX}" ..
 
 script:
-    - make -j4
+    - make VERBOSE=1 -j4
     - ctest
 
 matrix:
