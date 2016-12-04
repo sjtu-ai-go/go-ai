@@ -1,0 +1,52 @@
+language: cpp
+sudo: required
+dist: trusty
+
+before_script:
+    - mkdir build
+    - cd build
+    - cmake -DCMake_Build_Type="${BUILD_TYPE}" ..
+
+script:
+    - make -j4
+    - ctest
+
+matrix:
+  include:
+    - env: 
+          - CC=gcc-4.9
+          - CXX=g++-4.9
+          - BUILD_TYPE=Debug
+    - env: 
+          - CC=gcc-4.9
+          - CXX=g++-4.9
+          - BUILD_TYPE=Release
+    - env: 
+          - CC=gcc-5
+          - CXX=g++-5
+          - BUILD_TYPE=Debug
+    - env: 
+          - CC=gcc-5
+          - CXX=g++-5
+          - BUILD_TYPE=Release
+    - env: 
+          - CC=clang-3.9
+          - CXX=clang++-3.9
+          - BUILD_TYPE=Debug
+    - env:
+          - CC=clang-3.9
+          - CXX=clang++-3.9
+          - BUILD_TYPE=Release
+
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-3.9
+        packages:
+            - clang-3.9
+            - g++-4.9
+            - g++-5
+            - libboost-all-dev
+            - cmake
+            - build-essential
