@@ -11,15 +11,13 @@
 #include "common/board.hpp"
 #include <numeric>
 #include "common/logger.hpp"
+#include "simple_engine_base.hpp"
 
 namespace engines
 {
     using namespace gtp;
-    class ExampleEngine: public gtp::IEngine {
+    class ExampleEngine: public SimpleEngineBase {
     private:
-        decltype(getGlobalLogger()) logger = getGlobalLogger();
-
-        static const char* KNOWN_COMMANDS[9];
         board::Board<19, 19> board;
         bool received_pass = false;
 
@@ -35,11 +33,6 @@ namespace engines
         }
     public:
         ExampleEngine() = default;
-        virtual int handle(const CmdProtocolVersion &cmd) override
-        {
-            logger->debug("Received CmdProtocolVersion command");
-            return 2;
-        }
         virtual std::string handle (const CmdName& cmd) override
         {
             logger->debug("Received CmdName");
@@ -49,26 +42,6 @@ namespace engines
         {
             logger->debug("Received CmdVersion");
             return "1.0";
-        }
-        virtual bool handle (const CmdKnownCommand& cmd) override
-        {
-            std::string param = std::get<0>(cmd.params);
-            logger->debug("Received KnownCommand: {}", param);
-            return std::find(std::begin(KNOWN_COMMANDS), std::end(KNOWN_COMMANDS), param) != std::end(KNOWN_COMMANDS);
-        }
-        virtual std::list<CommandType> handle (const CmdListCommands& cmd) override
-        {
-            logger->debug("Received ListCommands");
-            static const CommandType cts[] = {CommandType::clear_board, CommandType::boardsize, CommandType::komi,
-                                              CommandType::genmove, CommandType::play, CommandType::protocol_version,
-                                              CommandType::version, CommandType::name, CommandType::quit};
-
-            return std::list<CommandType>(std::begin(cts), std::end(cts));
-        }
-        virtual void handle (const CmdQuit& cmd) override
-        {
-            logger->debug("Received quit");
-            // No need to std::exit here since GtpLib will stop after this command
         }
         virtual void handle (const CmdBoardSize& cmd) override
         {
@@ -111,11 +84,6 @@ namespace engines
                 return VertexOrPass(posVec[idx].x + 1, posVec[idx].y + 1);
             }
         }
-        virtual void handle (const CmdUndo &cmd) override
-        {
-            logger->debug("Received undo");
-            throw std::runtime_error("Undo is unsupported");
-        }
         virtual void handle (const CmdPlay& cmd) override
         {
             Move move = std::get<0>(cmd.params);
@@ -135,19 +103,6 @@ namespace engines
             }
             logger->debug("After play \n {}", board);
         }
-        virtual std::list<Vertex> handle (const CmdFixedHandicap& cmd) override
-        {
-            throw std::runtime_error("FixedHandicap not implemented yet");
-        }
-        virtual std::list<Vertex> handle (const CmdPlaceFreeHandicap& cmd) override
-        {
-            throw std::runtime_error("PlaceFreeHandicap not implemented yet");
-        }
-        virtual void handle (const CmdSetFreeHandicap& cmd) override
-        {
-            logger->debug("Received set free handicap");
-            throw std::runtime_error("Unsupported SetFreeHandicap yet");
-        }
         virtual void handle (const CmdTimeSettings& cmd) override
         {
             int t1 = std::get<0>(cmd.params), t2 = std::get<1>(cmd.params), t3 = std::get<2>(cmd.params);
@@ -158,20 +113,6 @@ namespace engines
             Color c1 = std::get<0>(cmd.params), c2 = std::get<1>(cmd.params);
             int t1 = std::get<2>(cmd.params), t2 = std::get<3>(cmd.params);
             logger->debug("Received Time left: {} time for {}; {} time for {}", t1, (int)c1, t2, (int)c2);
-        }
-        virtual void handle (const CmdFinalScore& cmd) override
-        {
-            Score s = std::get<0>(cmd.params);
-            logger->debug("Received final score: Color: {}, Advantage: {}", (int)s.winner, s.advantage);
-        }
-        virtual std::list<Vertex> handle (const CmdFinalStatusList& cmd) override
-        {
-            throw std::runtime_error("CmdFinalStatusList not implemented yet");
-        }
-
-        virtual void handle(const CmdError &cmd) override
-        {
-            logger->debug("Received error!");
         }
 
         virtual ~ExampleEngine()
