@@ -29,15 +29,15 @@ namespace engines
         SimpleEngineBase() = default;
 
         // Simple engine implementers only need to implement these commands:
-        virtual std::string handle (const CmdName& cmd) = 0;
-        virtual std::string handle (const CmdVersion& cmd) = 0;
-        virtual void handle (const CmdBoardSize& cmd) = 0;
-        virtual void handle (const CmdClearBoard& cmd) = 0;
-        virtual void handle (const CmdKomi& cmd) = 0;
-        virtual VertexOrPass handle (const CmdGenmove& cmd) = 0;
-        virtual void handle (const CmdPlay& cmd) = 0;
-        virtual void handle (const CmdTimeSettings& cmd) = 0;
-        virtual void handle (const CmdTimeLeft& cmd) = 0;
+        virtual std::string handle (const CmdName& cmd) override = 0;
+        virtual std::string handle (const CmdVersion& cmd) override = 0;
+        virtual void handle (const CmdBoardSize& cmd) override = 0;
+        virtual void handle (const CmdClearBoard& cmd) override = 0;
+        virtual void handle (const CmdKomi& cmd) override = 0;
+        virtual VertexOrPass handle (const CmdGenmove& cmd) override = 0;
+        virtual void handle (const CmdPlay& cmd) override = 0;
+        virtual void handle (const CmdTimeSettings& cmd) override = 0;
+        virtual void handle (const CmdTimeLeft& cmd) override = 0;
 
         virtual int handle(const CmdProtocolVersion &cmd) override
         {
