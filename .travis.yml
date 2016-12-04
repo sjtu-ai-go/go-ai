@@ -41,10 +41,12 @@ addons:
         sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.8
+            - george-edison55-precise-backports
         packages:
             - clang-3.8
             - g++-4.9
             - g++-5
             - libboost-all-dev
             - cmake
+            - cmake-data
             - build-essential
