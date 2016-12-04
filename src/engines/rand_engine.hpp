@@ -16,9 +16,10 @@
 namespace engines
 {
     using namespace gtp;
-    class ExampleEngine: public SimpleEngineBase {
+    template<std::size_t BOARDSIZE>
+    class RandEngine : public SimpleEngineBase {
     private:
-        board::Board<19, 19> board;
+        board::Board<BOARDSIZE, BOARDSIZE> board;
         bool received_pass = false;
 
         static board::Player colorToPlayer(Color c)
@@ -32,11 +33,11 @@ namespace engines
             }
         }
     public:
-        ExampleEngine() = default;
+        RandEngine() = default;
         virtual std::string handle (const CmdName& cmd) override
         {
             logger->debug("Received CmdName");
-            return "ExampleEngine";
+            return "RandEngine";
         }
         virtual std::string handle (const CmdVersion& cmd) override
         {
@@ -48,7 +49,10 @@ namespace engines
             std::size_t size = std::get<0>(cmd.params);
             logger->debug("Received boardsize: {}", size);
             if (size != decltype(board)::w)
+            {
                 logger->error("Unsupported size: {}", size);
+                throw std::runtime_error("Unsupported size");
+            }
         }
         virtual void handle (const CmdClearBoard& cmd) override
         {
@@ -115,7 +119,7 @@ namespace engines
             logger->debug("Received Time left: {} time for {}; {} time for {}", t1, (int)c1, t2, (int)c2);
         }
 
-        virtual ~ExampleEngine()
+        virtual ~RandEngine()
         {
             logger->debug("Example engine destroyed!");
         }
