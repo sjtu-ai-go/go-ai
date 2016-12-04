@@ -16,13 +16,10 @@ namespace engines
     {
         decltype(getGlobalLogger()) logger = getGlobalLogger();
     public:
+        static const char *ENGINE_NAMES[];
         // Returns engine based on their name. If no matching engines found, returns nullptr
-        std::unique_ptr<gtp::IEngine> create(const std::string &engineName)
-        {
-            if (engineName == "ExampleEngine")
-                return std::unique_ptr<gtp::IEngine>(new engines::ExampleEngine);
-            return nullptr;
-        }
+        std::unique_ptr<gtp::IEngine> create(const std::string &engineName);
+        static const char *getDefaultEngineName();
     };
 }
 

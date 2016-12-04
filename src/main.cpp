@@ -23,8 +23,10 @@ ParsedResult parseCmd(int argc, char *argv[])
     po::options_description desc("Allowed options");
     desc.add_options()
             ("help,h", "print help message")
+            ("enginelist,s", "Print all engines")
             ("loglevel,l", po::value<int>()->default_value(2), "Log level(smaller <-> more detailed)")
-            ("engine,e", po::value<std::string>(&result.engineName)->default_value(std::string("ExampleEngine")), "Engine used")
+            ("engine,e", po::value<std::string>(&result.engineName)->
+                    default_value(engines::EngineFactory::getDefaultEngineName()), "Engine used")
             ;
 
     po::variables_map vm;
@@ -34,6 +36,14 @@ ParsedResult parseCmd(int argc, char *argv[])
     if (vm.count("help"))
     {
         std::cout << desc << "\n";
+        std::exit(EXIT_SUCCESS);
+    }
+
+    if (vm.count("enginelist"))
+    {
+        std::cout << "All engines:" << std::endl;
+        for (std::size_t i = 0; engines::EngineFactory::ENGINE_NAMES[i]; ++i)
+            std::cout << engines::EngineFactory::ENGINE_NAMES[i] << std::endl;
         std::exit(EXIT_SUCCESS);
     }
 
