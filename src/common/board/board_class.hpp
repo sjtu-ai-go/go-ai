@@ -41,13 +41,16 @@ namespace board
     class Board
     {
     private:
+
+        static const std::size_t INIT_LASTSTATEHASH = 0x24512211u,
+            INIT_CURSTATEHASH = 0xc7151360u;
         std::shared_ptr<spdlog::logger> logger = getGlobalLogger();
         BoardGrid<W, H> boardGrid_;
         std::list< GroupNode<W, H> > groupNodeList_;
         PosGroup<W, H> posGroup_;
         std::size_t step_ = 0;
-        std::size_t lastStateHash_ = 0x24512211u; // The hash of board 1 steps before. Used to validate ko.
-        std::size_t curStateHash_ = 0xc7151360u; // Hash of current board
+        std::size_t lastStateHash_ = INIT_LASTSTATEHASH; // The hash of board 1 steps before. Used to validate ko.
+        std::size_t curStateHash_ = INIT_CURSTATEHASH; // Hash of current board
         using PosGroupType = PosGroup<W, H>;
 
     public:
@@ -93,6 +96,15 @@ namespace board
         {
         }
 
+        void clear()
+        {
+            groupNodeList_.clear();
+            posGroup_.fill(groupNodeList_.end());
+            boardGrid_.clear();
+            lastStateHash_ = INIT_LASTSTATEHASH;
+            curStateHash_ = INIT_CURSTATEHASH;
+            step_ = 0;
+        }
 
         // Returns color of a point
         PointState getPointState(PointType p) const
@@ -116,7 +128,8 @@ namespace board
             OK, // Legal to place a piece
             NOCHANGE, // The piece to place is immediately taken away, and no change does it make to board
             KO, // Violates the rule of Ko
-            NOTEMPTY // The place is not empty
+            NOTEMPTY, // The place is not empty
+            SUICIDE // The piece doesn't survive after place
         };
         // Whether it is legal/why it is illegal to place a piece of player at p. State will not be changed.
         PositionStatus getPosStatus(PointType p, Player player);
@@ -127,7 +140,12 @@ namespace board
             for (std::size_t i=0; i<W; ++i)
                 for (std::size_t j=0; j<H; ++j)
                 {
+                    bool temp_disable_log = (int)logger->level() == (int)spdlog::level::trace;
+                    if (temp_disable_log)
+                        logger->set_level(spdlog::level::debug);
                     PositionStatus status = getPosStatus(PointType(i, j), player);
+                    if (temp_disable_log)
+                        logger->set_level(spdlog::level::trace);
                     if (status == PositionStatus::OK) {
                         ans.push_back(PointType(i, j));
                     } else {
@@ -158,6 +176,10 @@ namespace board
         void removeGroup(GroupIterator group);
         void mergeGroupAt(PointType thisPoint, PointType otherPoint);
         std::vector<GroupIterator> getAdjacentGroups(PointType p);
+        static inline bool GroupIteratorLess(const GroupIterator& it1, const GroupIterator& it2)
+        {
+            return &(*it1) < &(*it2);
+        }
     };
 
     template<std::size_t W, std::size_t H>
@@ -171,6 +193,7 @@ namespace board
                 adjGroups.push_back(group);
         });
         // remove Duplicated groups
+        std::sort(adjGroups.begin(), adjGroups.end(), Board::GroupIteratorLess);
         auto newEnd = std::unique(adjGroups.begin(), adjGroups.end());
         adjGroups.erase(newEnd, adjGroups.end());
         return adjGroups;
@@ -213,7 +236,7 @@ namespace board
     template<std::size_t W, std::size_t H>
     void Board<W,H>::place(PointType p, Player player)
     {
-        logger->debug("Place at {}, {}: {}", (int)p.x, (int)p.y, (int) player);
+        logger->trace("Place at {}, {}: {}", (int)p.x, (int)p.y, (int) player);
         if (getPointState(p) != PointState::NA)
             throw std::runtime_error("Try to place on an non-empty point");
 
@@ -250,6 +273,7 @@ namespace board
         });
         auto thisGroup = groupNodeList_.insert(groupNodeList_.cbegin(), gn);
         posGroup_.set(p, thisGroup);
+        logger->trace("After set: {}", *this);
 
         // --- Merge our group
         logger->trace("Merging group");
@@ -298,6 +322,8 @@ namespace board
             return Board::PositionStatus::NOCHANGE;
         if (testBoard.curStateHash_ == last2hash)
             return Board::PositionStatus::KO;
+        if (testBoard.getPointState(p) == PointState::NA)
+            return Board::PositionStatus::SUICIDE;
         return Board::PositionStatus::OK;
     };
 
@@ -305,19 +331,29 @@ namespace board
     std::ostream &  operator<<(std::ostream & o, const Board<W, H> & b) {
         using PT = typename Board<W, H>::PointType;
         o << "Points" << std::endl;
-        PT::for_all([&](PT p) {
-            o << (int) b.boardGrid_.get(p) << ' ';
-            if (p.is_right()) o << std::endl;
-        });
+
+
+        for (int j=H-1; j>=0; --j)
+        {
+            o << j + 1 << '\t';
+            for (int i=0; i<W; ++i)
+                o << (int) b.boardGrid_.get(PT {(char)i, (char)j}) << ' ';
+            o << std::endl;
+        }
         o << "Group Liberties"<< std::endl;
-        PT::for_all([&](PT p) {
-            auto group = b.getPointGroup(p);
-            if (group == b.groupNodeList_.end())
-                o << "O\t";
-            else
-                o << group->getLiberty() << "\t";
-            if (p.is_right()) o << std::endl;
-        });
+        for (int j=H-1; j>=0; --j)
+        {
+            o << j + 1 << '\t';
+            for (int i=0; i<W; ++i) {
+                PT p {(char)i, (char)j};
+                auto group = b.getPointGroup(p);
+                if (group == b.groupNodeList_.end())
+                    o << "O\t";
+                else
+                    o << group->getLiberty() << "\t";
+            }
+            o << std::endl;
+        }
         return o;
     }
 }

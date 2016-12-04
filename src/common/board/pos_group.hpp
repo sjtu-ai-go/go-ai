@@ -89,8 +89,7 @@ namespace board
         // Use this only if this is the first time set(*, this_iterator) is called! otherwise please use merge()!
         void set(PointType p, GroupIterator it)
         {
-            PointType fa = findfa(p);
-            arr[pointToIndex(fa)] = it;
+            arr[pointToIndex(p)] = it;
         }
 
         // Merge p2 into p1

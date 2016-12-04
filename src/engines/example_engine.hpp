@@ -8,7 +8,7 @@
 #include <vector>
 #include <cstdlib>
 #include <gtplib/gtpengine.hpp>
-#include <common/board/basic.hpp>
+#include "common/board.hpp"
 #include <numeric>
 #include "common/logger.hpp"
 
@@ -20,8 +20,19 @@ namespace engines
         decltype(getGlobalLogger()) logger = getGlobalLogger();
 
         static const char* KNOWN_COMMANDS[9];
-        std::vector< std::vector< board::PointState > > board;
+        board::Board<19, 19> board;
         bool received_pass = false;
+
+        static board::Player colorToPlayer(Color c)
+        {
+            switch (c)
+            {
+                case Color::black:
+                    return board::Player::B;
+                case Color::white:
+                    return board::Player::W;
+            }
+        }
     public:
         ExampleEngine() = default;
         virtual int handle(const CmdProtocolVersion &cmd) override
@@ -63,17 +74,14 @@ namespace engines
         {
             std::size_t size = std::get<0>(cmd.params);
             logger->debug("Received boardsize: {}", size);
-            board.resize(size);
-            for (auto &row: board)
-                row.resize(size);
+            if (size != decltype(board)::w)
+                logger->error("Unsupported size: {}", size);
         }
         virtual void handle (const CmdClearBoard& cmd) override
         {
             logger->debug("Received clear_board");
             received_pass = false;
-            std::for_each(std::begin(board), std::end(board), [](std::vector<board::PointState > &row ) {
-                std::fill(row.begin(), row.end(), board::PointState::NA);
-            });
+            board.clear();
         }
         virtual void handle (const CmdKomi& cmd) override
         {
@@ -83,24 +91,24 @@ namespace engines
         virtual VertexOrPass handle (const CmdGenmove& cmd) override
         {
             logger->debug("Received genmove");
-            int cnt = std::accumulate(board.cbegin(), board.cend(), 0,
-                                      [](int num, const std::vector<board::PointState> &row)
-                                      {
-                                          return num + std::count(row.cbegin(), row.cend(), board::PointState::NA);
-                                      }
-            );
-            if (received_pass || cnt < 0.5 * board.size() * board.size()) return VertexOrPass();
-            else
+            Color c = std::get<0>(cmd.params);
+
+            using PT = typename decltype(board)::PointType;
+
+            auto posVec = board.getAllValidPosition(colorToPlayer(c));
+            std::for_each(posVec.cbegin(), posVec.cend(), [&](PT p) {
+                logger->trace("Valid pos: ({}, {})  ", (int)p.x, (int) p.y);
+            });
+            if (posVec.empty())
             {
-                unsigned int x, y;
-                do
-                {
-                    x = std::rand() % board.size();
-                    y = std::rand() % board.size();
-                } while (board[x][y] != board::PointState::NA);
-                board[x][y] = board::PointState::B;
-                // output should be (1 to 19, 1 to 19)
-                return VertexOrPass(x + 1, y + 1);
+                return Pass();
+            } else
+            {
+                std::size_t idx = std::rand() % posVec.size();
+                logger->debug("Choose to place at {},{}", (int)posVec[idx].x + 1, (int)posVec[idx].y + 1);
+                board.place(posVec[idx], colorToPlayer(c));
+                logger->debug("After genmove \n {}", board);
+                return VertexOrPass(posVec[idx].x + 1, posVec[idx].y + 1);
             }
         }
         virtual void handle (const CmdUndo &cmd) override
@@ -111,18 +119,21 @@ namespace engines
         virtual void handle (const CmdPlay& cmd) override
         {
             Move move = std::get<0>(cmd.params);
+            Color c = move.color;
             if (move.vertex.type == VertexOrPassType::VERTEX)
             {
+                using PT = typename decltype(board)::PointType;
                 Vertex v = (Vertex)(move.vertex);
                 logger->debug("Received Play at ({}, {})", v.x -1 , v.y - 1);
                 // Input is (1 to 19, 1 to 19)
-                board[v.x - 1][v.y - 1] = board::PointState::W;
+                board.place(PT {(char)(v.x - 1), (char)(v.y -1)}, colorToPlayer(c));
             }
             else
             {
                 logger->debug("Received PASS");
                 received_pass = true;
             }
+            logger->debug("After play \n {}", board);
         }
         virtual std::list<Vertex> handle (const CmdFixedHandicap& cmd) override
         {
@@ -135,11 +146,7 @@ namespace engines
         virtual void handle (const CmdSetFreeHandicap& cmd) override
         {
             logger->debug("Received set free handicap");
-            auto l = std::get<0>(cmd.params);
-            std::for_each(l.begin(), l.end(), [&](const Vertex &v)
-            {
-                board[v.x][v.y] = board::PointState::W;
-            });
+            throw std::runtime_error("Unsupported SetFreeHandicap yet");
         }
         virtual void handle (const CmdTimeSettings& cmd) override
         {
