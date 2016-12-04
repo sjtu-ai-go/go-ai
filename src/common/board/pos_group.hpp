@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <iterator>
 #include <functional>
+#include <array>
 #include <unordered_map>
 #include <boost/variant/variant.hpp>
 #include <boost/variant/get.hpp>
@@ -39,7 +40,7 @@ namespace board
         };
     protected:
         using ItemType = boost::variant<GroupIterator, PointType>;
-        mutable ItemType arr[W * H];
+        mutable std::array<ItemType, W * H> arr;
 
         static std::size_t pointToIndex(PointType p)
         {
