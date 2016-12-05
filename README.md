@@ -1,6 +1,6 @@
 # go-ai
 [![Build Status](https://travis-ci.org/sjtu-ai-go/go-ai.svg)](https://travis-ci.org/sjtu-ai-go/go-ai)
-[![Apache License](https://img.shields.io/github/license/sjtu-ai-go/go-ai.svg)](https://github.com/sjtu-ai-go/go-ai/blob/master/LICENSE)
+[![GNU3 License](https://img.shields.io/github/license/sjtu-ai-go/go-ai.svg)](https://github.com/sjtu-ai-go/go-ai/blob/master/LICENSE)
 
 Toy Go game AI
 
