@@ -309,7 +309,7 @@ namespace board
     }
 
     template<std::size_t W, std::size_t H>
-    auto Board<W,H>::getPosStatus(PointType p, Player player) -> Board::PositionStatus
+    auto Board<W,H>::getPosStatus(PointType p, Player player) -> typename Board::PositionStatus
     {
         if (getPointState(p) != PointState::NA)
             return Board::PositionStatus::NOTEMPTY;
