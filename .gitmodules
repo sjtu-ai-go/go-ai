@@ -4,9 +4,9 @@
 [submodule "vendor/googletest"]
 	path = vendor/googletest
 	url = https://github.com/sjtu-ai-go/googletest.git
-[submodule "vendor/spdlog"]
-	path = vendor/spdlog
-	url = https://github.com/gabime/spdlog.git
-[submodule "vendor/CompressedGrid"]
-	path = vendor/CompressedGrid
-	url = https://github.com/sjtu-ai-go/CompressedGrid.git
+[submodule "vendor/libgo-common"]
+	path = vendor/libgo-common
+	url = https://github.com/sjtu-ai-go/libgo-common.git
+[submodule "vendor/libgoboard"]
+	path = vendor/libgoboard
+	url = https://github.com/sjtu-ai-go/libgoboard.git

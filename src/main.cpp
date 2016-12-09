@@ -5,7 +5,7 @@
 #include <utility>
 
 #include "engines/rand_engine.hpp"
-#include "common/logger.hpp"
+#include "logger.hpp"
 #include <boost/program_options.hpp>
 #include <gtplib/gtpfrontend.hpp>
 #include "engines/engine_factory.hpp"

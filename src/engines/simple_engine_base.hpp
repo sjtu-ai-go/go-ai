@@ -14,8 +14,8 @@
 #include <numeric>
 #include <cstdlib>
 #include <gtplib/gtpengine.hpp>
-#include "common/board.hpp"
-#include "common/logger.hpp"
+#include "board.hpp"
+#include "logger.hpp"
 
 namespace engines
 {

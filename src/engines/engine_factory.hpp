@@ -4,7 +4,7 @@
 
 #ifndef GO_AI_ENGINE_FACTORY_HPP
 #define GO_AI_ENGINE_FACTORY_HPP
-#include "common/logger.hpp"
+#include "logger.hpp"
 #include "rand_engine.hpp"
 #include <gtplib/gtpengine.hpp>
 #include <string>

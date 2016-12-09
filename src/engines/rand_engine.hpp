@@ -8,9 +8,9 @@
 #include <vector>
 #include <cstdlib>
 #include <gtplib/gtpengine.hpp>
-#include "common/board.hpp"
+#include "board.hpp"
 #include <numeric>
-#include "common/logger.hpp"
+#include "logger.hpp"
 #include "simple_engine_base.hpp"
 
 namespace engines
