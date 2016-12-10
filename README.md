@@ -10,6 +10,7 @@ Toy Go game AI
 
 ```
 git clone --recursive {{Git address of this repository (you can find it by clicking the green "Clone or Download" button)}}
+git submodule update --init --recursive
 ```
 
 ### Install Vagrant
