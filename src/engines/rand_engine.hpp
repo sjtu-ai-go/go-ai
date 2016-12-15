@@ -72,7 +72,7 @@ namespace engines
 
             using PT = typename decltype(board)::PointType;
 
-            auto posVec = board.getAllValidPosition(colorToPlayer(c));
+            auto posVec = board.getAllGoodPosition(colorToPlayer(c));
             std::for_each(posVec.cbegin(), posVec.cend(), [&](PT p) {
                 logger->trace("Valid pos: ({}, {})  ", (int)p.x, (int) p.y);
             });
