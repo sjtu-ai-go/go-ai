@@ -30,7 +30,6 @@
 
 *.log
 /build
-.vagrant/
 
 /.idea
 /cmake-build-*
