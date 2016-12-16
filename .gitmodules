@@ -1,12 +1,16 @@
 [submodule "vendor/gtplib"]
 	path = vendor/gtplib
 	url = https://github.com/sjtu-ai-go/gtplib.git
+	branch = master
 [submodule "vendor/googletest"]
 	path = vendor/googletest
 	url = https://github.com/sjtu-ai-go/googletest.git
+	branch = master
 [submodule "vendor/libgo-common"]
 	path = vendor/libgo-common
 	url = https://github.com/sjtu-ai-go/libgo-common.git
+	branch = master
 [submodule "vendor/libgoboard"]
 	path = vendor/libgoboard
 	url = https://github.com/sjtu-ai-go/libgoboard.git
+	branch = master
