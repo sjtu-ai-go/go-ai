@@ -43,7 +43,7 @@ include_directories(${libgoboard_INCLUDE_DIR})
 ################################
 # SRCS
 ################################
-set(engines_SRC src/engines/rand_engine.hpp src/engines/engine_factory.hpp src/engines/engine_factory.cpp src/engines/simple_engine_base.hpp src/engines/simple_engine_base.cpp)
+set(engines_SRC src/engines/rand_engine.hpp src/engines/engine_factory.hpp src/engines/engine_factory.cpp src/engines/simple_engine_base.hpp src/engines/simple_engine_base.cpp src/engines/uct_engine.hpp)
 
 ################################
 # Main program

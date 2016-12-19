@@ -14,3 +14,7 @@
 	path = vendor/libgoboard
 	url = https://github.com/sjtu-ai-go/libgoboard.git
 	branch = master
+[submodule "vendor/libuct"]
+	path = vendor/libuct
+	url = https://github.com/sjtu-ai-go/libuct.git
+	branch = master

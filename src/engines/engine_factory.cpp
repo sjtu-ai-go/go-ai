@@ -8,10 +8,14 @@
 
 namespace engines
 {
-    const char *EngineFactory::ENGINE_NAMES[] = {"RandEngine19x19", "RandEngine9x9", nullptr};
+    const char *EngineFactory::ENGINE_NAMES[] = {"UctEngine19x19", "UctEngine9x9", "RandEngine19x19", "RandEngine9x9", nullptr};
 
     std::unique_ptr<gtp::IEngine> EngineFactory::create(const std::string &engineName)
     {
+        if (engineName == "UctEngine19x19")
+            return std::unique_ptr<gtp::IEngine>(new engines::UctEngine<19>);
+        if (engineName == "UctEngine9x(")
+            return std::unique_ptr<gtp::IEngine>(new engines::UctEngine<9>);
         if (engineName == "RandEngine19x19")
             return std::unique_ptr<gtp::IEngine>(new engines::RandEngine<19>);
         if (engineName == "RandEngine9x9")
