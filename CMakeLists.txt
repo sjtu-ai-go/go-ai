@@ -40,6 +40,13 @@ include_directories(${libgo-common_INCLUDE_DIR})
 ################################
 add_subdirectory(${go-ai_SOURCE_DIR}/vendor/libgoboard)
 include_directories(${libgoboard_INCLUDE_DIR})
+
+################################
+# libuct
+################################
+add_subdirectory(${go-ai_SOURCE_DIR}/vendor/libuct)
+include_directories(${libuct_INCLUDE_DIR})
+
 ################################
 # SRCS
 ################################
