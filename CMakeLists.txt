@@ -7,7 +7,7 @@ set (CMAKE_CXX_STANDARD 11)
 ################################
 # Find boost
 ################################
-find_package(Boost 1.46 REQUIRED COMPONENTS program_options)
+find_package(Boost 1.46 REQUIRED COMPONENTS program_options system)
 include_directories(${Boost_INCLUDE_DIRS})
 
 ################################
@@ -57,7 +57,7 @@ set(engines_SRC src/engines/rand_engine.hpp src/engines/engine_factory.hpp src/e
 ################################
 include_directories(src/)
 add_executable(go-ai ${engines_SRC} src/main.cpp)
-target_link_libraries(go-ai ${Boost_PROGRAM_OPTIONS_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} go-common goboard)
+target_link_libraries(go-ai ${Boost_PROGRAM_OPTIONS_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} go-common goboard)
 
 ################################
 # Unit Tests
