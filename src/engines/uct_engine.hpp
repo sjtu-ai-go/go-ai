@@ -17,6 +17,8 @@
 #include <numeric>
 #include "logger.hpp"
 #include "simple_engine_base.hpp"
+#include "uct/uct.hpp"
+#include <chrono>
 
 namespace engines
 {
@@ -77,20 +79,21 @@ namespace engines
 
             using PT = typename decltype(board)::PointType;
 
-            auto posVec = board.getAllGoodPosition(colorToPlayer(c));
-            std::for_each(posVec.cbegin(), posVec.cend(), [&](PT p) {
-                logger->trace("Valid pos: ({}, {})  ", (int)p.x, (int)p.y);
-            });
-            if(posVec.empty())
+            uct::Tree<uct::detail::UCTTreePolicy<BOARDSIZE, BOARDSIZE>> tree(board, colorToPlayer(c), 6.5);
+            using TreeT = decltype(tree);
+            tree.run(4, std::chrono::seconds(1));
+            typename TreeT::TreeNodeType *p = tree.getResultNode();
+
+            if(p == NULL)
             {
                 return Pass();
             } else
             {
-                std::size_t idx = std::rand() % posVec.size();
-                logger->debug("Choose to place at {}, {}", (int)posVec[idx].x + 1, (int)posVec[idx].y + 1);
-                board.place(posVec[idx], colorToPlayer(c));
+                logger->trace("Valid pos: ({}, {})  ", (int)p->block.action.x, (int)p->block.action.y);
+                logger->debug("Choose to place at {}, {}", (int)p->block.action.x + 1, (int)p->block.action.y + 1);
+                board.place(p->block.action, colorToPlayer(c));
                 logger->debug("After genmove \n {}", board);
-                return VertexOrPass(posVec[idx].x + 1, posVec[idx].y + 1);
+                return VertexOrPass(p->block.action.x + 1, p->block.action.y + 1);
             }
         }
         virtual void handle(const CmdPlay& cmd) override

@@ -14,7 +14,7 @@ namespace engines
     {
         if (engineName == "UctEngine19x19")
             return std::unique_ptr<gtp::IEngine>(new engines::UctEngine<19>);
-        if (engineName == "UctEngine9x(")
+        if (engineName == "UctEngine9x9")
             return std::unique_ptr<gtp::IEngine>(new engines::UctEngine<9>);
         if (engineName == "RandEngine19x19")
             return std::unique_ptr<gtp::IEngine>(new engines::RandEngine<19>);
