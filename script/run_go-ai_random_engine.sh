@@ -2,4 +2,4 @@
 
 # For gogui with twogtp which cannot parse arguments passed to --black
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-${DIR}/../build/go-ai -l 1
+${DIR}/../build/go-ai -l 0 -e RandEngine19x19
