@@ -4,7 +4,6 @@
 #include <vector>
 #include <utility>
 
-#include "engines/rand_engine.hpp"
 #include "logger.hpp"
 #include <boost/program_options.hpp>
 #include <gtplib/gtpfrontend.hpp>

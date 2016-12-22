@@ -39,6 +39,8 @@ namespace engines
                     return board::Player::W;
             }
         }
+
+        float komi = 6.5;
     public:
         UctEngine() = default;
         virtual std::string handle(const CmdName& cmd) override
@@ -69,7 +71,7 @@ namespace engines
         }
         virtual void handle(const CmdKomi& cmd) override
         {
-            float komi = std::get<0>(cmd.params);
+            komi = std::get<0>(cmd.params);
             logger->debug("Received komi {}", komi);
         }
         virtual VertexOrPass handle(const CmdGenmove& cmd) override
@@ -79,7 +81,7 @@ namespace engines
 
             using PT = typename decltype(board)::PointType;
 
-            uct::Tree<uct::detail::UCTTreePolicy<BOARDSIZE, BOARDSIZE>> tree(board, colorToPlayer(c), 6.5);
+            uct::Tree<uct::detail::UCTTreePolicy<BOARDSIZE, BOARDSIZE>> tree(board, colorToPlayer(c), komi);
             using TreeT = decltype(tree);
             tree.run(4, std::chrono::seconds(1));
             typename TreeT::TreeNodeType *p = tree.getResultNode();
