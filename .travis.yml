@@ -1,24 +1,21 @@
+sudo: required
+dist: trusty
+
 language: cpp
 
-before_script:
-    - mkdir build
-    - cd build
-    - cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DCMAKE_C_COMPILER="${X_CC}" -DCMAKE_CXX_COMPILER="${X_CXX}" ..
+services:
+    - docker
+
+before_install:
+    - docker pull htfy96/build-image
+    - docker run -ti -v $(pwd):/data htfy96/build-image bash -c "cd /data; mkdir -p build && cd build; cmake -Dgo-ai_build_tests=ON -DCMAKE_C_COMPILER=${X_CC} -DCMAKE_CXX_COMPILER=${X_CXX} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .." 
 
 script:
-    - make VERBOSE=1 -j4
-    - ctest
+    - docker run -ti -v $(pwd):/data htfy96/build-image bash -c 'cd /data/build; make -j4'
+    - docker run -ti -v $(pwd):/data htfy96/build-image bash -c 'cd /data/build; ctest --output-on-failure'
 
 matrix:
   include:
-    - env: 
-          - X_CC=gcc-4.9
-          - X_CXX=g++-4.9
-          - BUILD_TYPE=Debug
-    - env: 
-          - X_CC=gcc-4.9
-          - X_CXX=g++-4.9
-          - BUILD_TYPE=Release
     - env: 
           - X_CC=gcc-5
           - X_CXX=g++-5
@@ -35,18 +32,3 @@ matrix:
           - X_CC=clang-3.8
           - X_CXX=clang++-3.8
           - BUILD_TYPE=Release
-
-addons:
-    apt:
-        sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.8
-            - george-edison55-precise-backports
-        packages:
-            - clang-3.8
-            - g++-4.9
-            - g++-5
-            - libboost-all-dev
-            - cmake
-            - cmake-data
-            - build-essential
