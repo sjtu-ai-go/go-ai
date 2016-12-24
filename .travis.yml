@@ -8,7 +8,7 @@ services:
 
 before_install:
     - docker pull htfy96/build-image
-    - docker run -ti -v $(pwd):/data htfy96/build-image bash -c "cd /data; mkdir -p build && cd build; cmake -Dgo-ai_build_tests=ON -DCMAKE_C_COMPILER=${X_CC} -DCMAKE_CXX_COMPILER=${X_CXX} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .." 
+    - docker run -ti -v $(pwd):/data htfy96/build-image bash -c "cd /data; mkdir -p build && cd build && rm -rf *; cmake -Dgo-ai_build_tests=ON -DCMAKE_C_COMPILER=${X_CC} -DCMAKE_CXX_COMPILER=${X_CXX} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .." 
 
 script:
     - docker run -ti -v $(pwd):/data htfy96/build-image bash -c 'cd /data/build; make -j4'
