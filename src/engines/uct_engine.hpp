@@ -19,6 +19,8 @@
 #include "simple_engine_base.hpp"
 #include "uct/uct.hpp"
 #include <chrono>
+#include <iostream>
+#include <boost/program_options.hpp>
 
 namespace engines
 {
@@ -41,8 +43,29 @@ namespace engines
         }
 
         float komi = 6.5;
+        std::string cnn_addr; unsigned short cnn_port;
     public:
-        UctEngine() = default;
+        UctEngine(const std::vector<std::string> &subargs)
+        {
+            namespace po = boost::program_options;
+            po::options_description uct_desc("UCT descriptions");
+            uct_desc.add_options()
+                    ("help,h", "Print CNN help message")
+                    ("cnnserver,c", po::value<std::string>(&cnn_addr)->default_value("127.0.0.1"), "CNN Server")
+                    ("port,p", po::value<unsigned short>(&cnn_port)->default_value(7591), "CNN Port");
+
+            auto parsed = po::command_line_parser(subargs).options(uct_desc).run();
+            po::variables_map vm;
+            po::store(parsed, vm);
+            po::notify(vm);
+
+            if (vm.count("help"))
+            {
+                std::cout << uct_desc << std::endl;
+                std::exit(EXIT_SUCCESS);
+            }
+            logger->info("Default CNN Server {}, port {}", cnn_addr, cnn_port);
+        }
         virtual std::string handle(const CmdName& cmd) override
         {
             logger->debug("Received CmdName");
@@ -81,9 +104,11 @@ namespace engines
 
             using PT = typename decltype(board)::PointType;
 
-            uct::Tree<uct::detail::UCTTreePolicy<BOARDSIZE, BOARDSIZE>> tree(board, colorToPlayer(c), komi);
+            uct::Tree<uct::detail::UCTTreePolicy<BOARDSIZE, BOARDSIZE>> tree(board, colorToPlayer(c), komi,
+            cnn_addr, cnn_port);
+            logger->info("Trying to connect to {} : {}", cnn_addr, cnn_port);
             using TreeT = decltype(tree);
-            tree.run(4, std::chrono::seconds(1));
+            tree.run(4, std::chrono::seconds(5));
             typename TreeT::TreeNodeType *p = tree.getResultNode();
 
             if(p == NULL)

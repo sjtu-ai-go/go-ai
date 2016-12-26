@@ -13,28 +13,36 @@
 struct ParsedResult
 {
     std::string engineName;
+    std::vector<std::string> subargs;
 };
 
 ParsedResult parseCmd(int argc, char *argv[])
 {
     ParsedResult result;
     namespace po = boost::program_options;
-    po::options_description desc("Allowed options");
-    desc.add_options()
+    po::options_description global("Global options");
+    global.add_options()
             ("help,h", "print help message")
             ("enginelist,s", "Print all engines")
             ("loglevel,l", po::value<int>()->default_value(2), "Log level(smaller <-> more detailed)")
             ("engine,e", po::value<std::string>(&result.engineName)->
                     default_value(engines::EngineFactory::getDefaultEngineName()), "Engine used")
+            ("subargs", po::value<std::vector< std::string >>(&result.subargs), "Arguments for engines")
             ;
-
+    po::positional_options_description pos;
     po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
+
+    po::parsed_options parsed = po::command_line_parser(argc, argv).
+            options(global).
+            allow_unregistered().
+            run();
+
+    po::store(parsed, vm);
     po::notify(vm);
 
     if (vm.count("help"))
     {
-        std::cout << desc << "\n";
+        std::cout << global << "\n";
         std::exit(EXIT_SUCCESS);
     }
 
@@ -59,7 +67,7 @@ int main(int argc, char *argv[])
 
     ParsedResult cmd = parseCmd(argc, argv);
     engines::EngineFactory engineFactory;
-    auto engine = engineFactory.create(cmd.engineName);
+    auto engine = engineFactory.create(cmd.engineName, cmd.subargs);
     if (engine == nullptr)
     {
         logger->critical("Cannot found matching engine {}", cmd.engineName);

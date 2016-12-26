@@ -33,7 +33,9 @@ namespace engines
             }
         }
     public:
-        RandEngine() = default;
+        RandEngine(const std::vector<std::string> &subargs)
+        {}
+
         virtual std::string handle (const CmdName& cmd) override
         {
             logger->debug("Received CmdName");
